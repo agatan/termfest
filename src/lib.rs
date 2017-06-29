@@ -1,3 +1,5 @@
+#![feature(io)]
+
 extern crate nix;
 extern crate term;
 
@@ -12,6 +14,9 @@ use std::os::unix::io::AsRawFd;
 use nix::sys::termios;
 use term::terminfo::TermInfo;
 
+mod event;
+pub use event::{Event, Key};
+
 struct Cursor {
     x: isize,
     y: isize,
@@ -24,22 +29,17 @@ pub struct Festival {
     cursor: Option<Cursor>,
 }
 
-pub fn hold() -> Result<(Festival, mpsc::Receiver<Vec<u8>>), io::Error> {
+pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
     let mut ttyin = OpenOptions::new()
         .write(false)
         .read(true)
         .create(false)
         .open("/dev/tty")?;
     let (tx, rx) = mpsc::channel();
-    ::std::thread::spawn(move || {
-        let mut buf = vec![0; 128];
-        loop {
-            match ttyin.read(&mut buf) {
-                Ok(n) => tx.send(buf.iter().take(n).cloned().collect()).unwrap(),
-                Err(e) => panic!(e),
-            }
-        }
-    });
+    ::std::thread::spawn(move || loop {
+                             let ev = event::Event::parse(&mut ttyin).unwrap();
+                             tx.send(ev).unwrap();
+                         });
     Festival::new().map(|fest| (fest, rx))
 }
 

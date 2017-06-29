@@ -1,5 +1,7 @@
 extern crate festival;
 
+use festival::{Event, Key};
+
 fn main() {
     let (mut f, rx) = festival::hold().unwrap();
     f.clear().unwrap();
@@ -11,13 +13,15 @@ fn main() {
     ::std::thread::sleep(::std::time::Duration::from_millis(500));
 
     loop {
-        let v = rx.recv().unwrap();
-        if v.len() == 1 && v[0] == 'q' as u8 {
-            break;
-        }
-        f.set_cursor(4, 4).unwrap();
-        for b in v {
-            f.putbyte(b).unwrap();
+        match rx.recv().unwrap() {
+            Event::Key(Key::Char(ch)) => {
+                if ch == 'q' {
+                    break;
+                } else {
+                    f.set_cursor(4, 4).unwrap();
+                    f.putchar(ch).unwrap();
+                }
+            }
         }
     }
 }
