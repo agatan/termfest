@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use std::io;
 use std::fs::{File, OpenOptions};
 use std::ops::Drop;
+use std::sync::mpsc;
 
 use std::os::unix::io::AsRawFd;
 
@@ -18,28 +19,38 @@ struct Cursor {
 
 pub struct Festival {
     ttyout: File,
-    ttyin: File,
     terminfo: TermInfo,
     orig_tios: termios::Termios,
     cursor: Option<Cursor>,
 }
 
+pub fn hold() -> Result<(Festival, mpsc::Receiver<Vec<u8>>), io::Error> {
+    let mut ttyin = OpenOptions::new()
+        .write(false)
+        .read(true)
+        .create(false)
+        .open("/dev/tty")?;
+    let (tx, rx) = mpsc::channel();
+    ::std::thread::spawn(move || {
+        let mut buf = vec![0; 128];
+        loop {
+            match ttyin.read(&mut buf) {
+                Ok(n) => tx.send(buf.iter().take(n).cloned().collect()).unwrap(),
+                Err(e) => panic!(e),
+            }
+        }
+    });
+    Festival::new().map(|fest| (fest, rx))
+}
+
 impl Festival {
-    pub fn new() -> Result<Self, io::Error> {
+    fn new() -> Result<Self, io::Error> {
         let ttyout = OpenOptions::new()
             .write(true)
             .read(false)
             .create(false)
             .open("/dev/tty")?;
-        let ttyin = OpenOptions::new()
-            .write(false)
-            .read(true)
-            .create(false)
-            .open("/dev/tty")?;
 
-        nix::fcntl::fcntl(ttyin.as_raw_fd(),
-                          nix::fcntl::F_SETFL(nix::fcntl::O_NONBLOCK))
-                .unwrap();
         let orig_tios = termios::tcgetattr(ttyout.as_raw_fd())?;
         let mut tios = orig_tios;
         tios.c_iflag &=
@@ -57,7 +68,6 @@ impl Festival {
 
         let mut fest = Festival {
             ttyout: ttyout,
-            ttyin: ttyin,
             terminfo: terminfo,
             orig_tios: orig_tios,
             cursor: None,
@@ -98,6 +108,15 @@ impl Festival {
     pub fn hide_cursor(&mut self) -> Result<(), io::Error> {
         self.cursor = None;
         self.ttyout.write_all(&self.terminfo.strings["civis"])
+    }
+
+    pub fn putchar(&mut self, ch: char) -> Result<(), io::Error> {
+        let mut buf = [0; 4];
+        self.ttyout.write_all(ch.encode_utf8(&mut buf).as_bytes())
+    }
+
+    pub fn putbyte(&mut self, byte: u8) -> Result<(), io::Error> {
+        self.ttyout.write_all(&[byte])
     }
 }
 
