@@ -7,3 +7,4 @@ authors = ["agatan <agatan039@gmail.com>"]
 nix = "*"
 term = "*"
 libc = "*"
+chan-signal = "*"

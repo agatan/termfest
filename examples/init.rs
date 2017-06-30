@@ -1,5 +1,7 @@
 extern crate festival;
 
+use std::io::{Write, stderr};
+
 use festival::{Event, Key};
 
 fn main() {
@@ -18,6 +20,10 @@ fn main() {
                     'h' => f.move_cursor(0, h / 2),
                     ch => f.put_char(5, 5, ch),
                 }
+            }
+            Event::Resize { width, height } => {
+                panic!(width);
+                writeln!(stderr(), "w: {}, h: {}", width, height).unwrap();
             }
         }
     }
