@@ -70,7 +70,7 @@ impl Festival {
 
         let terminal = Terminal::from_env()?;
         terminal.enter_ca(&mut ttyout)?;
-        let screen = Screen::new(80, 50);
+        terminal.clear(&mut ttyout)?;
 
         let mut fest = Festival {
             ttyout: ttyout,
@@ -85,36 +85,9 @@ impl Festival {
     }
 
     fn flush_to_buffer(&mut self) -> io::Result<()> {
-        for command in self.screen.flush_iter() {
-            self.terminal.write(&mut self.ttyout, command)?;
+        for command in self.screen.flush_commands() {
+            self.terminal.write(&mut self.write_buffer, command)?;
         }
-        // let mut last_x = -1;
-        // let mut last_y = -1;
-        // for y in 0..self.screen.height {
-        //     for x in 0..self.screen.width {
-        //         let cell = match self.screen.cell(x, y) {
-        //             None => continue,
-        //             Some(cell) => cell,
-        //         };
-        //         if let Some(ch) = cell.ch {
-        //             if last_x != x - 1 || last_y != y {
-        //                 self.terminal.move_cursor(&mut self.write_buffer, x, y)?;
-        //             }
-        //             self.terminal.put_char(&mut self.write_buffer, ch)?;
-        //             last_x = x;
-        //             last_y = y;
-        //         }
-        //     }
-        // }
-        // self.terminal
-        //     .move_cursor(&mut self.write_buffer,
-        //                  self.screen.cursor.x,
-        //                  self.screen.cursor.y)?;
-        // if self.screen.cursor.visible {
-        //     self.terminal.show_cursor(&mut self.write_buffer)?;
-        // } else {
-        //     self.terminal.hide_cursor(&mut self.write_buffer)?;
-        // }
         Ok(())
     }
 
@@ -132,19 +105,14 @@ impl Festival {
     pub fn move_cursor(&mut self, x: i32, y: i32) {
         self.screen.cursor.x = x;
         self.screen.cursor.y = y;
-        self.terminal
-            .move_cursor(&mut self.write_buffer, x, y)
-            .unwrap()
     }
 
     pub fn hide_cursor(&mut self) {
         self.screen.cursor.visible = false;
-        self.terminal.hide_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn show_cursor(&mut self) {
         self.screen.cursor.visible = true;
-        self.terminal.show_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {

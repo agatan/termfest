@@ -1,8 +1,9 @@
 use std::iter::Iterator;
+use std::collections::VecDeque;
 
 use terminal::Command;
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Cell {
     // `ch` is `None` if the left cell has wide character like 'あ'.
     pub ch: Option<char>,
@@ -74,27 +75,37 @@ impl Screen {
         }
     }
 
-    pub fn flush_iter(&mut self) -> UpdateCommands {
-        UpdateCommands {
-            index: 0,
-            screen: self,
-            last_x: !0,
-            last_y: !0,
+    pub fn flush_commands(&mut self) -> Vec<Command> {
+        let mut commands = Vec::new();
+        let mut last_x = -1;
+        let mut last_y = -1;
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let index = self.index(x, y).unwrap();
+                if self.painted_cells[index] == self.cells[index] {
+                    continue;
+                }
+                if let Some(ch) = self.cells[index].ch {
+                    if last_x != x || last_y != y {
+                        commands.push(Command::MoveCursor { x: x, y: y });
+                    }
+                    commands.push(Command::PutChar(ch));
+                    last_x = x;
+                    last_y = y;
+                }
+                self.painted_cells[index] = self.cells[index];
+            }
         }
-    }
-}
-
-pub struct UpdateCommands<'a> {
-    index: usize,
-    screen: &'a mut Screen,
-    last_x: usize,
-    last_y: usize,
-}
-
-impl<'a> Iterator for UpdateCommands<'a> {
-    type Item = Command;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        if self.cursor.visible && !self.painted_cursor.visible {
+            commands.push(Command::ShowCursor);
+        } else if !self.cursor.visible && self.painted_cursor.visible {
+            commands.push(Command::HideCursor);
+        }
+        commands.push(Command::MoveCursor {
+                          x: self.cursor.x,
+                          y: self.cursor.y,
+                      });
+        self.painted_cursor = self.cursor;
+        commands
     }
 }
