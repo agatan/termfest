@@ -1,6 +1,3 @@
-use std::iter::Iterator;
-use std::collections::VecDeque;
-
 use terminal::Command;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -34,14 +31,14 @@ impl Screen {
         Screen {
             width: width,
             height: height,
-            cells: vec![Cell::default(); (width * height) as usize],
+            cells: vec![Cell { ch: Some(' ') }; (width * height) as usize],
             cursor: Cursor {
                 x: 0,
                 y: 0,
                 visible: true,
             },
 
-            painted_cells: vec![Cell::default(); (width * height) as usize],
+            painted_cells: vec![Cell { ch: Some(' ') }; (width * height) as usize],
             painted_cursor: Cursor {
                 x: 0,
                 y: 0,
@@ -58,20 +55,9 @@ impl Screen {
         }
     }
 
-    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) {
+    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
         if let Some(i) = self.index(x, y) {
-            self.cells[i] = cell;
-        }
-    }
-
-    pub fn cell(&self, x: i32, y: i32) -> Option<&Cell> {
-        self.index(x, y).map(|i| &self.cells[i])
-    }
-
-    pub fn cell_mut(&mut self, x: i32, y: i32) -> Option<&mut Cell> {
-        match self.index(x, y) {
-            Some(i) => Some(&mut self.cells[i]),
-            None => None,
+            self.cells[i].ch = Some(ch);
         }
     }
 

@@ -12,7 +12,6 @@ use std::sync::mpsc;
 use std::os::unix::io::AsRawFd;
 
 use nix::sys::termios;
-use term::terminfo::TermInfo;
 
 mod event;
 pub use event::{Event, Key};
@@ -72,7 +71,7 @@ impl Festival {
         terminal.enter_ca(&mut ttyout)?;
         terminal.clear(&mut ttyout)?;
 
-        let mut fest = Festival {
+        let fest = Festival {
             ttyout: ttyout,
             orig_tios: orig_tios,
 
@@ -116,9 +115,7 @@ impl Festival {
     }
 
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
-        if let Some(cell) = self.screen.cell_mut(x, y) {
-            cell.ch = Some(ch);
-        }
+        self.screen.put_char(x, y, ch);
     }
 }
 
