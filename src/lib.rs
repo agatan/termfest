@@ -2,6 +2,7 @@
 
 extern crate nix;
 extern crate term;
+extern crate libc;
 
 use std::io::prelude::*;
 use std::io;
@@ -71,12 +72,14 @@ impl Festival {
         terminal.enter_ca(&mut ttyout)?;
         terminal.clear(&mut ttyout)?;
 
+        let (width, height) = terminal::size(ttyout.as_raw_fd());
+
         let fest = Festival {
             ttyout: ttyout,
             orig_tios: orig_tios,
 
             terminal: terminal,
-            screen: Screen::new(80, 50),
+            screen: Screen::new(width, height),
             write_buffer: Vec::new(),
         };
 
@@ -116,6 +119,10 @@ impl Festival {
 
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
         self.screen.put_char(x, y, ch);
+    }
+
+    pub fn size(&self) -> (i32, i32) {
+        terminal::size(self.ttyout.as_raw_fd())
     }
 }
 

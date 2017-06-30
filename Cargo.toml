@@ -6,3 +6,4 @@ authors = ["agatan <agatan039@gmail.com>"]
 [dependencies]
 nix = "*"
 term = "*"
+libc = "*"
