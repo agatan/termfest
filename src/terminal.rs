@@ -42,13 +42,12 @@ impl Terminal {
         w.write_all(ch.encode_utf8(&mut buf).as_bytes())
     }
 
-    pub fn write<W: Write>(&self, mut w: W, command: Command) -> io::Result<()> {
+    pub fn write<W: Write>(&self, w: W, command: Command) -> io::Result<()> {
         match command {
             Command::HideCursor => self.hide_cursor(w),
             Command::ShowCursor => self.show_cursor(w),
             Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
             Command::PutChar(ch) => self.put_char(w, ch),
-            Command::PutByte(byte) => w.write_all(&[byte]),
         }
     }
 }
@@ -59,5 +58,4 @@ pub enum Command {
     ShowCursor,
     MoveCursor { x: i32, y: i32 },
     PutChar(char),
-    PutByte(u8),
 }
