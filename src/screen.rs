@@ -8,6 +8,7 @@ pub struct Cell {
 pub struct Cursor {
     pub x: i32,
     pub y: i32,
+    pub visible: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +19,6 @@ pub struct Screen {
     // accessing (x, y) is equal to `cells[x + y * width]`
     pub cells: Vec<Cell>,
     pub cursor: Cursor,
-    pub cursor_is_visible: bool,
 }
 
 impl Screen {
@@ -27,8 +27,11 @@ impl Screen {
             width: width,
             height: height,
             cells: vec![Cell::default(); (width * height) as usize],
-            cursor: Cursor { x: 0, y: 0 },
-            cursor_is_visible: true,
+            cursor: Cursor {
+                x: 0,
+                y: 0,
+                visible: true,
+            },
         }
     }
 

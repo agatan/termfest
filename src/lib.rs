@@ -107,7 +107,7 @@ impl Festival {
             .move_cursor(&mut self.write_buffer,
                          self.screen.cursor.x,
                          self.screen.cursor.y)?;
-        if self.screen.cursor_is_visible {
+        if self.screen.cursor.visible {
             self.terminal.show_cursor(&mut self.write_buffer)?;
         } else {
             self.terminal.hide_cursor(&mut self.write_buffer)?;
@@ -127,19 +127,20 @@ impl Festival {
     }
 
     pub fn move_cursor(&mut self, x: i32, y: i32) {
-        self.screen.cursor = screen::Cursor { x: x, y: y };
+        self.screen.cursor.x = x;
+        self.screen.cursor.y = y;
         self.terminal
             .move_cursor(&mut self.write_buffer, x, y)
             .unwrap()
     }
 
     pub fn hide_cursor(&mut self) {
-        self.screen.cursor_is_visible = false;
+        self.screen.cursor.visible = false;
         self.terminal.hide_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn show_cursor(&mut self) {
-        self.screen.cursor_is_visible = true;
+        self.screen.cursor.visible = true;
         self.terminal.show_cursor(&mut self.write_buffer).unwrap()
     }
 
