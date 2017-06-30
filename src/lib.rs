@@ -17,8 +17,8 @@ use term::terminfo::TermInfo;
 mod event;
 pub use event::{Event, Key};
 
-mod buffer;
-use buffer::Buffer;
+mod screen;
+use screen::Screen;
 mod terminal;
 use terminal::Terminal;
 
@@ -29,9 +29,12 @@ struct Cursor {
 
 pub struct Festival {
     ttyout: File,
-    buffer: Buffer,
     orig_tios: termios::Termios,
     cursor: Option<Cursor>,
+
+    terminal: Terminal,
+    screen: Screen,
+    write_buffer: Vec<u8>,
 }
 
 pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
@@ -73,46 +76,78 @@ impl Festival {
 
         let terminal = Terminal::from_env()?;
         terminal.enter_ca(&mut ttyout)?;
-        let buffer = Buffer::new(terminal, 80, 50);
+        let screen = Screen::new(80, 50);
 
         let mut fest = Festival {
             ttyout: ttyout,
-            buffer: buffer,
             orig_tios: orig_tios,
             cursor: None,
+
+            terminal: terminal,
+            screen: Screen::new(80, 50),
+            write_buffer: Vec::new(),
         };
 
         Ok(fest)
     }
 
+    fn flush_to_buffer(&mut self) -> io::Result<()> {
+        let mut last_x = -1;
+        let mut last_y = -1;
+        for y in 0..self.screen.height {
+            for x in 0..self.screen.width {
+                let cell = match self.screen.cell(x, y) {
+                    None => continue,
+                    Some(cell) => cell,
+                };
+                if let Some(ch) = cell.ch {
+                    if last_x != x - 1 || last_y != y {
+                        self.terminal.move_cursor(&mut self.write_buffer, x, y)?;
+                    }
+                    self.terminal.put_char(&mut self.write_buffer, ch)?;
+                    last_x = x;
+                    last_y = y;
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn flush(&mut self) -> io::Result<()> {
-        self.buffer.flush(&mut self.ttyout)
+        self.flush_to_buffer()?;
+        self.ttyout.write_all(&self.write_buffer)?;
+        self.write_buffer.truncate(0);
+        Ok(())
     }
 
     pub fn clear(&mut self) {
-        self.buffer.clear()
+        self.terminal.clear(&mut self.write_buffer).unwrap()
     }
 
     pub fn move_cursor(&mut self, x: i32, y: i32) {
-        self.buffer.move_cursor(x, y)
+        self.terminal
+            .move_cursor(&mut self.write_buffer, x, y)
+            .unwrap()
     }
 
     pub fn hide_cursor(&mut self) {
-        self.buffer.hide_cursor()
+        self.terminal.hide_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn show_cursor(&mut self) {
-        self.buffer.show_cursor()
+        self.terminal.show_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
-        self.buffer.put_char(x, y, ch)
+        if let Some(cell) = self.screen.cell_mut(x, y) {
+            cell.ch = Some(ch);
+        }
     }
 }
 
 impl Drop for Festival {
     fn drop(&mut self) {
-        self.buffer.terminal.exit_ca(&mut self.ttyout).unwrap();
+        self.terminal.exit_ca(&mut self.ttyout).unwrap();
         termios::tcsetattr(self.ttyout.as_raw_fd(),
                            termios::SetArg::TCSANOW,
                            &self.orig_tios)
