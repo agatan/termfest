@@ -1,3 +1,7 @@
+use std::iter::Iterator;
+
+use terminal::Command;
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Cell {
     // `ch` is `None` if the left cell has wide character like 'あ'.
@@ -19,6 +23,9 @@ pub struct Screen {
     // accessing (x, y) is equal to `cells[x + y * width]`
     pub cells: Vec<Cell>,
     pub cursor: Cursor,
+
+    painted_cells: Vec<Cell>,
+    painted_cursor: Cursor,
 }
 
 impl Screen {
@@ -28,6 +35,13 @@ impl Screen {
             height: height,
             cells: vec![Cell::default(); (width * height) as usize],
             cursor: Cursor {
+                x: 0,
+                y: 0,
+                visible: true,
+            },
+
+            painted_cells: vec![Cell::default(); (width * height) as usize],
+            painted_cursor: Cursor {
                 x: 0,
                 y: 0,
                 visible: true,
@@ -58,5 +72,29 @@ impl Screen {
             Some(i) => Some(&mut self.cells[i]),
             None => None,
         }
+    }
+
+    pub fn flush_iter(&mut self) -> UpdateCommands {
+        UpdateCommands {
+            index: 0,
+            screen: self,
+            last_x: !0,
+            last_y: !0,
+        }
+    }
+}
+
+pub struct UpdateCommands<'a> {
+    index: usize,
+    screen: &'a mut Screen,
+    last_x: usize,
+    last_y: usize,
+}
+
+impl<'a> Iterator for UpdateCommands<'a> {
+    type Item = Command;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        None
     }
 }

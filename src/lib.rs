@@ -85,33 +85,36 @@ impl Festival {
     }
 
     fn flush_to_buffer(&mut self) -> io::Result<()> {
-        let mut last_x = -1;
-        let mut last_y = -1;
-        for y in 0..self.screen.height {
-            for x in 0..self.screen.width {
-                let cell = match self.screen.cell(x, y) {
-                    None => continue,
-                    Some(cell) => cell,
-                };
-                if let Some(ch) = cell.ch {
-                    if last_x != x - 1 || last_y != y {
-                        self.terminal.move_cursor(&mut self.write_buffer, x, y)?;
-                    }
-                    self.terminal.put_char(&mut self.write_buffer, ch)?;
-                    last_x = x;
-                    last_y = y;
-                }
-            }
+        for command in self.screen.flush_iter() {
+            self.terminal.write(&mut self.ttyout, command)?;
         }
-        self.terminal
-            .move_cursor(&mut self.write_buffer,
-                         self.screen.cursor.x,
-                         self.screen.cursor.y)?;
-        if self.screen.cursor.visible {
-            self.terminal.show_cursor(&mut self.write_buffer)?;
-        } else {
-            self.terminal.hide_cursor(&mut self.write_buffer)?;
-        }
+        // let mut last_x = -1;
+        // let mut last_y = -1;
+        // for y in 0..self.screen.height {
+        //     for x in 0..self.screen.width {
+        //         let cell = match self.screen.cell(x, y) {
+        //             None => continue,
+        //             Some(cell) => cell,
+        //         };
+        //         if let Some(ch) = cell.ch {
+        //             if last_x != x - 1 || last_y != y {
+        //                 self.terminal.move_cursor(&mut self.write_buffer, x, y)?;
+        //             }
+        //             self.terminal.put_char(&mut self.write_buffer, ch)?;
+        //             last_x = x;
+        //             last_y = y;
+        //         }
+        //     }
+        // }
+        // self.terminal
+        //     .move_cursor(&mut self.write_buffer,
+        //                  self.screen.cursor.x,
+        //                  self.screen.cursor.y)?;
+        // if self.screen.cursor.visible {
+        //     self.terminal.show_cursor(&mut self.write_buffer)?;
+        // } else {
+        //     self.terminal.hide_cursor(&mut self.write_buffer)?;
+        // }
         Ok(())
     }
 
