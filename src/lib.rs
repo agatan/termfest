@@ -38,7 +38,9 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
     let (tx, rx) = mpsc::channel();
     ::std::thread::spawn(move || loop {
                              let ev = event::Event::parse(&mut ttyin).unwrap();
-                             tx.send(ev).unwrap();
+                             if tx.send(ev).is_err() {
+                                 break;
+                             }
                          });
     Festival::new().map(|fest| (fest, rx))
 }
