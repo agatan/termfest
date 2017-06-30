@@ -22,15 +22,9 @@ use screen::Screen;
 mod terminal;
 use terminal::Terminal;
 
-struct Cursor {
-    x: isize,
-    y: isize,
-}
-
 pub struct Festival {
     ttyout: File,
     orig_tios: termios::Termios,
-    cursor: Option<Cursor>,
 
     terminal: Terminal,
     screen: Screen,
@@ -81,7 +75,6 @@ impl Festival {
         let mut fest = Festival {
             ttyout: ttyout,
             orig_tios: orig_tios,
-            cursor: None,
 
             terminal: terminal,
             screen: Screen::new(80, 50),
@@ -110,6 +103,15 @@ impl Festival {
                 }
             }
         }
+        self.terminal
+            .move_cursor(&mut self.write_buffer,
+                         self.screen.cursor.x,
+                         self.screen.cursor.y)?;
+        if self.screen.cursor_is_visible {
+            self.terminal.show_cursor(&mut self.write_buffer)?;
+        } else {
+            self.terminal.hide_cursor(&mut self.write_buffer)?;
+        }
         Ok(())
     }
 
@@ -125,16 +127,19 @@ impl Festival {
     }
 
     pub fn move_cursor(&mut self, x: i32, y: i32) {
+        self.screen.cursor = screen::Cursor { x: x, y: y };
         self.terminal
             .move_cursor(&mut self.write_buffer, x, y)
             .unwrap()
     }
 
     pub fn hide_cursor(&mut self) {
+        self.screen.cursor_is_visible = false;
         self.terminal.hide_cursor(&mut self.write_buffer).unwrap()
     }
 
     pub fn show_cursor(&mut self) {
+        self.screen.cursor_is_visible = true;
         self.terminal.show_cursor(&mut self.write_buffer).unwrap()
     }
 
