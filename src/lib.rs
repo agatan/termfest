@@ -17,6 +17,11 @@ use term::terminfo::TermInfo;
 mod event;
 pub use event::{Event, Key};
 
+mod buffer;
+use buffer::Buffer;
+mod terminal;
+use terminal::Terminal;
+
 struct Cursor {
     x: isize,
     y: isize,
@@ -24,7 +29,7 @@ struct Cursor {
 
 pub struct Festival {
     ttyout: File,
-    terminfo: TermInfo,
+    buffer: Buffer,
     orig_tios: termios::Termios,
     cursor: Option<Cursor>,
 }
@@ -47,7 +52,7 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
 
 impl Festival {
     fn new() -> Result<Self, io::Error> {
-        let ttyout = OpenOptions::new()
+        let mut ttyout = OpenOptions::new()
             .write(true)
             .read(false)
             .create(false)
@@ -66,65 +71,48 @@ impl Festival {
         tios.c_cc[termios::VTIME] = 0;
         termios::tcsetattr(ttyout.as_raw_fd(), termios::SetArg::TCSANOW, &tios)?;
 
-        let terminfo = TermInfo::from_env()?;
+        let terminal = Terminal::from_env()?;
+        terminal.enter_ca(&mut ttyout)?;
+        let buffer = Buffer::new(terminal, 80, 50);
 
         let mut fest = Festival {
             ttyout: ttyout,
-            terminfo: terminfo,
+            buffer: buffer,
             orig_tios: orig_tios,
             cursor: None,
         };
 
-        fest.enter_ca()?;
-
         Ok(fest)
     }
 
-    fn enter_ca(&mut self) -> Result<(), io::Error> {
-        let s = &self.terminfo.strings["smcup"];
-        self.ttyout.write_all(&s)
+    pub fn flush(&mut self) -> io::Result<()> {
+        self.buffer.flush(&mut self.ttyout)
     }
 
-    fn exit_ca(&mut self) -> Result<(), io::Error> {
-        let s = &self.terminfo.strings["rmcup"];
-        self.ttyout.write_all(&s)
+    pub fn clear(&mut self) {
+        self.buffer.clear()
     }
 
-    pub fn clear(&mut self) -> Result<(), io::Error> {
-        self.ttyout.write_all(&self.terminfo.strings["clear"])
+    pub fn move_cursor(&mut self, x: i32, y: i32) {
+        self.buffer.move_cursor(x, y)
     }
 
-    pub fn set_cursor(&mut self, x: isize, y: isize) -> Result<(), io::Error> {
-        if self.cursor.is_none() {
-            self.show_cursor()?;
-        }
-        self.cursor = Some(Cursor { x: x, y: y });
-        self.ttyout.write(&[0x1b])?;
-        write!(self.ttyout, "[{};{}H", y + 1, x + 1)
+    pub fn hide_cursor(&mut self) {
+        self.buffer.hide_cursor()
     }
 
-    fn show_cursor(&mut self) -> Result<(), io::Error> {
-        self.ttyout.write_all(&self.terminfo.strings["cnorm"])
+    pub fn show_cursor(&mut self) {
+        self.buffer.show_cursor()
     }
 
-    pub fn hide_cursor(&mut self) -> Result<(), io::Error> {
-        self.cursor = None;
-        self.ttyout.write_all(&self.terminfo.strings["civis"])
-    }
-
-    pub fn putchar(&mut self, ch: char) -> Result<(), io::Error> {
-        let mut buf = [0; 4];
-        self.ttyout.write_all(ch.encode_utf8(&mut buf).as_bytes())
-    }
-
-    pub fn putbyte(&mut self, byte: u8) -> Result<(), io::Error> {
-        self.ttyout.write_all(&[byte])
+    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
+        self.buffer.put_char(x, y, ch)
     }
 }
 
 impl Drop for Festival {
     fn drop(&mut self) {
-        self.exit_ca().unwrap();
+        self.buffer.terminal.exit_ca(&mut self.ttyout).unwrap();
         termios::tcsetattr(self.ttyout.as_raw_fd(),
                            termios::SetArg::TCSANOW,
                            &self.orig_tios)
