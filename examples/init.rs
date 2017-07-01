@@ -22,7 +22,6 @@ fn main() {
                 }
             }
             Event::Resize { width, height } => {
-                panic!(width);
                 writeln!(stderr(), "w: {}, h: {}", width, height).unwrap();
             }
         }

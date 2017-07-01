@@ -3,7 +3,7 @@
 extern crate nix;
 extern crate term;
 extern crate libc;
-extern crate chan_signal;
+extern crate signal_notify;
 
 use std::io::prelude::*;
 use std::io;
@@ -14,7 +14,7 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::os::unix::io::AsRawFd;
 
 use nix::sys::termios;
-use chan_signal::Signal;
+use signal_notify::{notify, Signal};
 
 mod event;
 pub use event::{Event, Key};
@@ -58,9 +58,9 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
         let ttyout_fd = ttyout.as_raw_fd();
         let screen = screen.clone();
         let tx = tx.clone();
-        let sigwinch = chan_signal::notify(&[Signal::WINCH]);
+        let sigwinch = notify(&[Signal::WINCH]);
         ::std::thread::spawn(move || loop {
-                                 if sigwinch.recv().is_none() {
+                                 if sigwinch.recv().is_err() {
                                      break;
                                  }
                                  let (w, h) = terminal::size(ttyout_fd);
