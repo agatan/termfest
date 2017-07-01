@@ -27,6 +27,7 @@ fn main() {
                     ch => f.put_char(5, 5, ch),
                 }
             }
+            Event::Key(_) => unimplemented!(),
             Event::Resize { width, height } => {
                 w = width;
                 h = height;

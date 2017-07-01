@@ -109,12 +109,36 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>) -> io::Result<()> {
         .read(true)
         .create(false)
         .open("/dev/tty")?;
-    ::std::thread::spawn(move || loop {
-                             let ev = event::Event::parse(&mut ttyin).unwrap();
-                             if tx.send(ev).is_err() {
-                                 break;
-                             }
-                         });
+    unsafe {
+        libc::fcntl(ttyin.as_raw_fd(),
+                    libc::F_SETFL,
+                    libc::O_ASYNC | libc::O_NONBLOCK);
+    }
+    let sigio = notify(&[Signal::IO]);
+    ::std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        for _ in sigio.iter() {
+            let mut tmpbuf = [0; 64];
+            match ttyin.read(&mut tmpbuf) {
+                Ok(n) => buf.extend(&tmpbuf[..n]),
+                Err(e) => {
+                    match e.kind() {
+                        io::ErrorKind::WouldBlock |
+                        io::ErrorKind::InvalidInput => continue,
+                        _ => panic!(e),
+                    }
+                }
+            };
+            let mut from = 0;
+            while let Some((read_byte, ev)) = event::Event::parse(&buf[from..]).unwrap() {
+                from += read_byte;
+                if tx.send(ev).is_err() {
+                    break;
+                }
+            }
+            buf = buf[from..].to_vec();
+        }
+    });
     Ok(())
 }
 
