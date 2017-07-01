@@ -1,4 +1,6 @@
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
+
+use terminal::Terminal;
 
 #[derive(Debug, Clone)]
 pub enum Event {
@@ -6,7 +8,7 @@ pub enum Event {
     Resize { width: i32, height: i32 },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Key {
     Char(char),
     ArrowUp,
@@ -16,7 +18,19 @@ pub enum Key {
 }
 
 impl Event {
-    pub fn parse(buf: &[u8]) -> io::Result<Option<(usize, Event)>> {
+    /// Parse event from buffer. Returns `Err` if any IO error occurs.
+    /// `Ok(None)` means 'no error occurs, but buffered bytes is not enough'.
+    pub fn parse(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
+        if buf.is_empty() {
+            return Ok(None);
+        }
+        if buf[0] == b'\x1b' {
+            // escape sequence
+            if let Some(result) = Event::parse_escape_sequence(buf, term)? {
+                return Ok(Some(result));
+            }
+        }
+
         let ch = match buf.chars().next() {
             None => return Ok(None),
             Some(Ok(ch)) => ch,
@@ -24,5 +38,22 @@ impl Event {
             Some(Err(io::CharsError::Other(err))) => return Err(err.into()),
         };
         Ok(Some((ch.len_utf8(), Event::Key(Key::Char(ch)))))
+    }
+
+    fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
+        debug_assert!(buf[0] == b'\x1b');
+
+        let keys = [(term.arrow_up(), Key::ArrowUp),
+                    (term.arrow_down(), Key::ArrowDown),
+                    (term.arrow_left(), Key::ArrowLeft),
+                    (term.arrow_right(), Key::ArrowRight)];
+
+        for &(keybytes, key) in keys.iter() {
+            if buf.starts_with(keybytes) {
+                return Ok(Some((keybytes.len(), Event::Key(key))));
+            }
+        }
+
+        Ok(None)
     }
 }

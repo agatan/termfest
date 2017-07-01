@@ -29,7 +29,7 @@ pub struct Festival {
     ttyout: File,
     orig_tios: termios::Termios,
 
-    terminal: Terminal,
+    terminal: Arc<Terminal>,
     /// `screen` should be guraded with `Mutex` because SIGWINCH watcher thread will modify width
     /// and height of `screen`
     screen: Arc<Mutex<Screen>>,
@@ -45,13 +45,14 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
 
     let orig_tios = setup_tios(ttyout.as_raw_fd())?;
 
-    let terminal = Terminal::from_env()?;
+    let terminal = Arc::new(Terminal::from_env()?);
     terminal.enter_ca(&mut ttyout)?;
+    terminal.enter_keypad(&mut ttyout)?;
     terminal.clear(&mut ttyout)?;
 
     let (tx, rx) = mpsc::channel();
 
-    spawn_ttyin_reader(tx.clone())?;
+    spawn_ttyin_reader(tx.clone(), terminal.clone())?;
 
     let (width, height) = terminal::size(ttyout.as_raw_fd());
     let screen = Arc::new(Mutex::new(Screen::new(width, height)));
@@ -103,7 +104,7 @@ fn setup_tios(fd: ::libc::c_int) -> io::Result<termios::Termios> {
     Ok(orig_tios)
 }
 
-fn spawn_ttyin_reader(tx: mpsc::Sender<Event>) -> io::Result<()> {
+fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Result<()> {
     let mut ttyin = OpenOptions::new()
         .write(false)
         .read(true)
@@ -130,9 +131,13 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>) -> io::Result<()> {
                 }
             };
             let mut from = 0;
-            while let Some((read_byte, ev)) = event::Event::parse(&buf[from..]).unwrap() {
-                from += read_byte;
-                if tx.send(ev).is_err() {
+            loop {
+                if let Some((read_byte, ev)) = event::Event::parse(&buf[from..], &*term).unwrap() {
+                    from += read_byte;
+                    if tx.send(ev).is_err() {
+                        break;
+                    }
+                } else {
                     break;
                 }
             }
@@ -186,6 +191,7 @@ impl Festival {
 
 impl Drop for Festival {
     fn drop(&mut self) {
+        self.terminal.exit_keypad(&mut self.ttyout).unwrap();
         self.terminal.exit_ca(&mut self.ttyout).unwrap();
         termios::tcsetattr(self.ttyout.as_raw_fd(),
                            termios::SetArg::TCSANOW,

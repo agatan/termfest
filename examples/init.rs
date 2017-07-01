@@ -14,8 +14,11 @@ fn main() {
     f.put_char(5, 5, 'い');
     f.flush().unwrap();
 
+    let (mut cursor_x, mut cursor_y) = (0, 0);
+
     loop {
-        match rx.recv().unwrap() {
+        let ev = rx.recv().unwrap();
+        match ev {
             Event::Key(Key::Char(ch)) => {
                 match ch {
                     'q' => break,
@@ -27,7 +30,22 @@ fn main() {
                     ch => f.put_char(5, 5, ch),
                 }
             }
-            Event::Key(_) => unimplemented!(),
+            Event::Key(Key::ArrowUp) => {
+                cursor_y -= 1;
+                f.move_cursor(cursor_x, cursor_y);
+            }
+            Event::Key(Key::ArrowDown) => {
+                cursor_y += 1;
+                f.move_cursor(cursor_x, cursor_y);
+            }
+            Event::Key(Key::ArrowLeft) => {
+                cursor_x -= 1;
+                f.move_cursor(cursor_x, cursor_y);
+            }
+            Event::Key(Key::ArrowRight) => {
+                cursor_x += 1;
+                f.move_cursor(cursor_x, cursor_y);
+            }
             Event::Resize { width, height } => {
                 w = width;
                 h = height;

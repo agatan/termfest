@@ -22,6 +22,14 @@ impl Terminal {
         w.write_all(&self.terminfo.strings["rmcup"])
     }
 
+    pub fn enter_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
+        w.write_all(&self.terminfo.strings["smkx"])
+    }
+
+    pub fn exit_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
+        w.write_all(&self.terminfo.strings["rmkx"])
+    }
+
     pub fn clear<W: Write>(&self, mut w: W) -> io::Result<()> {
         w.write_all(&self.terminfo.strings["clear"])
     }
@@ -51,6 +59,22 @@ impl Terminal {
             Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
             Command::PutChar(ch) => self.put_char(w, ch),
         }
+    }
+
+    pub fn arrow_up(&self) -> &[u8] {
+        &self.terminfo.strings["kcuu1"]
+    }
+
+    pub fn arrow_down(&self) -> &[u8] {
+        &self.terminfo.strings["kcud1"]
+    }
+
+    pub fn arrow_left(&self) -> &[u8] {
+        &self.terminfo.strings["kcub1"]
+    }
+
+    pub fn arrow_right(&self) -> &[u8] {
+        &self.terminfo.strings["kcuf1"]
     }
 }
 

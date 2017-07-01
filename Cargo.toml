@@ -7,5 +7,5 @@ authors = ["agatan <agatan039@gmail.com>"]
 nix = "*"
 term = "*"
 libc = "*"
-signal-notify = "0.1"
+signal-notify = "0.1.2"
 unicode-width = "*"
