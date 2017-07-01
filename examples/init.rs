@@ -1,21 +1,12 @@
 extern crate festival;
 
+use std::io::{Write, stderr};
+
 use festival::{Event, Key};
 
 fn main() {
     let (mut f, rx) = festival::hold().unwrap();
-    f.clear();
-    f.move_cursor(3, 3);
-    ::std::thread::sleep(::std::time::Duration::from_millis(500));
-    f.flush().unwrap();
-    ::std::thread::sleep(::std::time::Duration::from_millis(500));
-    f.hide_cursor();
-    f.flush().unwrap();
-    ::std::thread::sleep(::std::time::Duration::from_millis(1000));
-    f.move_cursor(10, 10);
-    f.show_cursor();
-    f.flush().unwrap();
-    ::std::thread::sleep(::std::time::Duration::from_millis(1000));
+    let (mut w, mut h) = f.size();
 
     loop {
         match rx.recv().unwrap() {
@@ -23,12 +14,16 @@ fn main() {
                 match ch {
                     'q' => break,
                     'f' => f.flush().unwrap(),
-                    'h' => f.hide_cursor(),
-                    's' => f.show_cursor(),
-                    'u' => f.move_cursor(3, 3),
-                    'd' => f.move_cursor(4, 4),
+                    'k' => f.move_cursor(w / 2, 0),
+                    'j' => f.move_cursor(w / 2, h - 1),
+                    'l' => f.move_cursor(w - 1, h / 2),
+                    'h' => f.move_cursor(0, h / 2),
                     ch => f.put_char(5, 5, ch),
                 }
+            }
+            Event::Resize { width, height } => {
+                w = width;
+                h = height;
             }
         }
     }

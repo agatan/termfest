@@ -3,6 +3,7 @@ use std::io::{self, Read};
 #[derive(Debug, Clone)]
 pub enum Event {
     Key(Key),
+    Resize { width: i32, height: i32 },
 }
 
 #[derive(Debug, Clone)]

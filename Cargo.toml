@@ -6,3 +6,5 @@ authors = ["agatan <agatan039@gmail.com>"]
 [dependencies]
 nix = "*"
 term = "*"
+libc = "*"
+signal-notify = "0.1"
