@@ -65,9 +65,7 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
                                  }
                                  let (w, h) = terminal::size(ttyout_fd);
                                  let mut screen = screen.lock().unwrap();
-                                 screen.width = w;
-                                 screen.height = h;
-                                 // TODO(agatan): resize cells
+                                 screen.resize(w, h);
                                  if tx.send(Event::Resize {
                                                 width: w,
                                                 height: h,

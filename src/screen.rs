@@ -47,6 +47,28 @@ impl Screen {
         }
     }
 
+    fn copy_cells(&self, original: &[Cell], width: i32, height: i32) -> Vec<Cell> {
+        let mut new_cells = vec![Cell { ch: Some(' ') }; (width * height) as usize];
+        use std::cmp;
+        let min_height = cmp::min(height, self.height);
+        let min_width = cmp::min(width, self.width);
+        for y in 0..min_height {
+            let orig_start = (y * self.width) as usize;
+            let orig_end = min_width as usize + orig_start;
+            let start = (y * width) as usize;
+            let end = min_width as usize + start;
+            (&mut new_cells[start..end]).copy_from_slice(&original[orig_start..orig_end]);
+        }
+        new_cells
+    }
+
+    pub fn resize(&mut self, width: i32, height: i32) {
+        self.cells = self.copy_cells(&self.cells, width, height);
+        self.painted_cells = self.copy_cells(&self.painted_cells, width, height);
+        self.width = width;
+        self.height = height;
+    }
+
     fn index(&self, x: i32, y: i32) -> Option<usize> {
         if x < 0 || self.width <= x || y < 0 || self.height <= y {
             None

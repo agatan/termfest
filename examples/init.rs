@@ -6,7 +6,7 @@ use festival::{Event, Key};
 
 fn main() {
     let (mut f, rx) = festival::hold().unwrap();
-    let (w, h) = f.size();
+    let (mut w, mut h) = f.size();
 
     loop {
         match rx.recv().unwrap() {
@@ -22,7 +22,8 @@ fn main() {
                 }
             }
             Event::Resize { width, height } => {
-                writeln!(stderr(), "w: {}, h: {}", width, height).unwrap();
+                w = width;
+                h = height;
             }
         }
     }
