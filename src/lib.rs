@@ -4,6 +4,7 @@ extern crate nix;
 extern crate term;
 extern crate libc;
 extern crate signal_notify;
+extern crate unicode_width;
 
 use std::io::prelude::*;
 use std::io;

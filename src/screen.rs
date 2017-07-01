@@ -1,3 +1,5 @@
+use unicode_width::UnicodeWidthChar;
+
 use terminal::Command;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
@@ -100,6 +102,12 @@ impl Screen {
                     commands.push(Command::PutChar(ch));
                     last_x = x;
                     last_y = y;
+                    if ch.width_cjk() == Some(2) {
+                        last_x += 1;
+                        if let Some(right) = self.index(x + 1, y) {
+                            self.cells[right].ch = None;
+                        }
+                    }
                 }
                 self.painted_cells[index] = self.cells[index];
             }

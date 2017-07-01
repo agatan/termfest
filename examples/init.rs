@@ -8,6 +8,12 @@ fn main() {
     let (mut f, rx) = festival::hold().unwrap();
     let (mut w, mut h) = f.size();
 
+    f.put_char(4, 4, 'a');
+    f.put_char(5, 4, 'b');
+    f.put_char(4, 5, 'あ');
+    f.put_char(5, 5, 'い');
+    f.flush().unwrap();
+
     loop {
         match rx.recv().unwrap() {
             Event::Key(Key::Char(ch)) => {
