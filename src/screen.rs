@@ -166,7 +166,7 @@ impl Screen {
                 if ch.width() == Some(2) {
                     last_x += 1;
                     if let Some(right) = self.index(x + 1, y) {
-                        self.cells[right].ch = ' ';
+                        self.cells[right] = Cell { ch: ' ', ..cell };
                     }
                 }
                 self.painted_cells[index] = self.cells[index];
