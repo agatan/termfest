@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use term::terminfo::TermInfo;
 use libc;
 
-use event::Key;
+use keys::Key;
 
 #[derive(Debug)]
 pub struct Terminal {

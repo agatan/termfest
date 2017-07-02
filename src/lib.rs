@@ -20,9 +20,10 @@ use std::os::unix::io::AsRawFd;
 use nix::sys::termios;
 use signal_notify::{notify, Signal};
 
+pub mod keys;
+pub use keys::Key;
 mod event;
-pub use event::{Event, Key};
-
+pub use event::Event;
 mod screen;
 use screen::Screen;
 mod terminal;

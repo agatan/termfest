@@ -1,6 +1,7 @@
 extern crate festival;
 
-use festival::{Event, Key};
+use festival::Event;
+use festival::keys::*;
 
 fn main() {
     let (mut f, rx) = festival::hold().unwrap();
@@ -17,19 +18,19 @@ fn main() {
             }
             Event::Key(key) => {
                 match key {
-                    Key::ArrowUp | Key::CtrlP => {
+                    ArrowUp | CtrlP => {
                         cursor_y -= 1;
                         f.move_cursor(cursor_x, cursor_y);
                     }
-                    Key::ArrowDown | Key::CtrlN => {
+                    ArrowDown | CtrlN => {
                         cursor_y += 1;
                         f.move_cursor(cursor_x, cursor_y);
                     }
-                    Key::ArrowLeft | Key::CtrlB => {
+                    ArrowLeft | CtrlB => {
                         cursor_x -= 1;
                         f.move_cursor(cursor_x, cursor_y);
                     }
-                    Key::ArrowRight | Key::CtrlF => {
+                    ArrowRight | CtrlF => {
                         cursor_x += 1;
                         f.move_cursor(cursor_x, cursor_y);
                     }
