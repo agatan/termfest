@@ -4,9 +4,9 @@ version = "0.1.0"
 authors = ["agatan <agatan039@gmail.com>"]
 
 [dependencies]
-term = "*"
-libc = "*"
+term = "0.4"
+libc = "0.2"
 signal-notify = "0.1.2"
-unicode-width = "*"
+unicode-width = "0.1"
 num = "0.1"
-num-derive = "*"
+num-derive = "0.1"
