@@ -10,7 +10,7 @@ extern crate num_derive;
 extern crate num;
 
 use std::io::prelude::*;
-use std::io;
+use std::io::{self, BufWriter};
 use std::fs::{File, OpenOptions};
 use std::ops::Drop;
 use std::sync::{mpsc, Arc, Mutex, MutexGuard};
@@ -30,14 +30,13 @@ mod terminal;
 use terminal::Terminal;
 
 pub struct Festerm {
-    ttyout: File,
+    ttyout: BufWriter<File>,
     orig_tios: termios::Termios,
 
     terminal: Arc<Terminal>,
     /// `screen` should be guraded with `Mutex` because SIGWINCH watcher thread will modify width
     /// and height of `screen`
     screen: Arc<Mutex<Screen>>,
-    write_buffer: Vec<u8>,
 }
 
 pub fn hold() -> Result<(Festerm, mpsc::Receiver<Event>), io::Error> {
@@ -83,11 +82,10 @@ pub fn hold() -> Result<(Festerm, mpsc::Receiver<Event>), io::Error> {
     }
 
     let fest = Festerm {
-        ttyout: ttyout,
+        ttyout: BufWriter::new(ttyout),
         orig_tios: orig_tios,
         terminal: terminal,
         screen: screen,
-        write_buffer: Vec::new(),
     };
     Ok((fest, rx))
 }
@@ -152,22 +150,8 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
 }
 
 impl Festerm {
-    fn flush_to_buffer(&mut self) -> io::Result<()> {
-        for command in self.screen.lock().unwrap().flush_commands() {
-            self.terminal.write(&mut self.write_buffer, command)?;
-        }
-        Ok(())
-    }
-
-    pub fn flush(&mut self) -> io::Result<()> {
-        self.flush_to_buffer()?;
-        self.ttyout.write_all(&self.write_buffer)?;
-        self.write_buffer.truncate(0);
-        Ok(())
-    }
-
     pub fn size(&self) -> (i32, i32) {
-        terminal::size(self.ttyout.as_raw_fd())
+        terminal::size(self.ttyout.get_ref().as_raw_fd())
     }
 
     pub fn lock_screen(&mut self) -> ScreenLock {
@@ -184,7 +168,7 @@ impl Drop for Festerm {
     fn drop(&mut self) {
         self.terminal.exit_keypad(&mut self.ttyout).unwrap();
         self.terminal.exit_ca(&mut self.ttyout).unwrap();
-        termios::tcsetattr(self.ttyout.as_raw_fd(),
+        termios::tcsetattr(self.ttyout.get_ref().as_raw_fd(),
                            termios::SetArg::TCSANOW,
                            &self.orig_tios)
                 .unwrap();
@@ -194,7 +178,7 @@ impl Drop for Festerm {
 pub struct ScreenLock<'a> {
     flushed: bool,
     screen: MutexGuard<'a, Screen>,
-    ttyout: &'a mut File,
+    ttyout: &'a mut BufWriter<File>,
     terminal: &'a Terminal,
 }
 
@@ -203,6 +187,8 @@ impl<'a> ScreenLock<'a> {
         for command in self.screen.flush_commands() {
             self.terminal.write(&mut self.ttyout, command)?;
         }
+        self.ttyout.flush()?;
+        self.flushed = true;
         Ok(())
     }
 
@@ -233,7 +219,7 @@ impl<'a> ScreenLock<'a> {
     }
 
     pub fn size(&self) -> (i32, i32) {
-        terminal::size(self.ttyout.as_raw_fd())
+        terminal::size(self.ttyout.get_ref().as_raw_fd())
     }
 }
 

@@ -1,6 +1,6 @@
 use unicode_width::UnicodeWidthChar;
 
-use terminal::{Terminal, Command};
+use terminal::Command;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Cell {
