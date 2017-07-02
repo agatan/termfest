@@ -1,6 +1,5 @@
 #![feature(io)]
 
-extern crate nix;
 extern crate term;
 extern crate libc;
 extern crate signal_notify;
@@ -17,7 +16,6 @@ use std::sync::{mpsc, Arc, Mutex, MutexGuard};
 
 use std::os::unix::io::{RawFd, AsRawFd};
 
-use nix::sys::termios;
 use signal_notify::{notify, Signal};
 
 pub mod keys;
@@ -36,7 +34,7 @@ pub use attr::Color;
 pub struct TermFest {
     ttyout_fd: RawFd,
     ttyout: Mutex<BufWriter<File>>,
-    orig_tios: termios::Termios,
+    orig_tios: libc::termios,
 
     terminal: Arc<Terminal>,
     /// `screen` should be guraded with `Mutex` because SIGWINCH watcher thread will modify width
@@ -114,10 +112,14 @@ impl TermFest {
 
 impl Drop for TermFest {
     fn drop(&mut self) {
-        let mut ttyout = self.ttyout.lock().unwrap();
-        self.terminal.exit_keypad(&mut *ttyout).unwrap();
-        self.terminal.exit_ca(&mut *ttyout).unwrap();
-        termios::tcsetattr(self.ttyout_fd, termios::SetArg::TCSANOW, &self.orig_tios).unwrap();
+        // ignore errors in drop
+        if let Ok(mut ttyout) = self.ttyout.lock() {
+            let _ = self.terminal.exit_keypad(&mut *ttyout);
+            let _ = self.terminal.exit_ca(&mut *ttyout);
+            unsafe {
+                libc::tcsetattr(self.ttyout_fd, libc::TCSANOW, &self.orig_tios);
+            }
+        }
     }
 }
 
@@ -183,20 +185,26 @@ impl<'a> Drop for ScreenLock<'a> {
     }
 }
 
-fn setup_tios(fd: ::libc::c_int) -> io::Result<termios::Termios> {
-    let orig_tios = termios::tcgetattr(fd)?;
-    let mut tios = orig_tios;
-    tios.c_iflag &= !(termios::IGNBRK | termios::BRKINT | termios::PARMRK | termios::ISTRIP |
-                      termios::INLCR |
-                      termios::IGNCR | termios::ICRNL | termios::IXON);
-    tios.c_lflag &= !(termios::ECHO | termios::ECHONL | termios::ICANON | termios::ISIG |
-                      termios::IEXTEN);
-    tios.c_cflag &= !(termios::CSIZE | termios::PARENB);
-    tios.c_cflag |= termios::CS8;
-    tios.c_cc[termios::VMIN] = 1;
-    tios.c_cc[termios::VTIME] = 0;
-    termios::tcsetattr(fd, termios::SetArg::TCSANOW, &tios)?;
-    Ok(orig_tios)
+fn setup_tios(fd: ::libc::c_int) -> io::Result<libc::termios> {
+    unsafe {
+        let mut orig_tios: libc::termios = ::std::mem::uninitialized();
+        if libc::tcgetattr(fd, &mut orig_tios as *mut _) < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let mut tios = orig_tios;
+        tios.c_iflag &= !(libc::IGNBRK | libc::BRKINT | libc::PARMRK | libc::ISTRIP |
+                          libc::INLCR | libc::IGNCR | libc::ICRNL |
+                          libc::IXON);
+        tios.c_lflag &= !(libc::ECHO | libc::ECHONL | libc::ICANON | libc::ISIG | libc::IEXTEN);
+        tios.c_cflag &= !(libc::CSIZE | libc::PARENB);
+        tios.c_cflag |= libc::CS8;
+        tios.c_cc[libc::VMIN] = 1;
+        tios.c_cc[libc::VTIME] = 0;
+        if libc::tcsetattr(fd, libc::TCSANOW, &tios) < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(orig_tios)
+    }
 }
 
 fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Result<()> {
