@@ -48,6 +48,7 @@ impl Editor {
                 x += ch.width().unwrap_or(1) as i32;
             }
             screen.put_char(x, 0, Cell::new(' '));
+            screen.put_char(x + 1, 0, Cell::new(' '));
             screen.move_cursor(self.cursor, 0);
         }
     }
