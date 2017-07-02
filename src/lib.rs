@@ -118,6 +118,7 @@ impl Drop for TermFest {
         if let Ok(mut ttyout) = self.ttyout.lock() {
             let _ = self.terminal.exit_keypad(&mut *ttyout);
             let _ = self.terminal.exit_ca(&mut *ttyout);
+            let _ = self.terminal.reset_attr(&mut *ttyout);
             unsafe {
                 libc::tcsetattr(self.ttyout_fd, libc::TCSANOW, &self.orig_tios);
             }
