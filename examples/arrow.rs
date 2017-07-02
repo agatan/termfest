@@ -8,7 +8,7 @@ fn main() {
     let (mut cursor_x, mut cursor_y) = (0, 0);
 
     for ev in rx.iter() {
-        let mut screen = f.lock_screen();
+        let mut screen = f.lock();
         match ev {
             Event::Char('q') | Event::Key(ESC) => break,
             Event::Char(ch) => screen.put_char(cursor_x, cursor_y, ch),
