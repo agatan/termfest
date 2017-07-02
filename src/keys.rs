@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, FromPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Key {
     CtrlA = 0x01,
     CtrlB = 0x02,
@@ -28,6 +28,7 @@ pub enum Key {
     CtrlZ = 0x1a,
     ESC = 0x1b,
     Space = 0x20,
+    Backspace = 0x7f,
     ArrowUp,
     ArrowDown,
     ArrowLeft,
@@ -35,12 +36,3 @@ pub enum Key {
 }
 
 pub use Key::*;
-
-#[allow(non_upper_case_globals)]
-pub const Backspace: Key = Key::CtrlH;
-
-#[allow(non_upper_case_globals)]
-pub const Tab: Key = Key::CtrlI;
-
-#[allow(non_upper_case_globals)]
-pub const Enter: Key = Key::CtrlM;

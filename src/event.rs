@@ -58,7 +58,7 @@ impl Event {
 }
 
 fn key_from_byte(byte: u8) -> Option<Key> {
-    if byte as isize <= Key::Space as isize {
+    if byte as isize <= Key::Backspace as isize {
         Key::from_u8(byte)
     } else {
         None

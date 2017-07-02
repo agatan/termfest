@@ -167,6 +167,7 @@ impl Festival {
     }
 
     pub fn clear(&mut self) {
+        self.screen.lock().unwrap().clear();
         self.terminal.clear(&mut self.write_buffer).unwrap()
     }
 

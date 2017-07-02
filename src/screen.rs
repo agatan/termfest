@@ -71,6 +71,15 @@ impl Screen {
         self.height = height;
     }
 
+    pub fn clear(&mut self) {
+        for cell in self.painted_cells.iter_mut() {
+            cell.ch = Some(' ');
+        }
+        for cell in self.cells.iter_mut() {
+            cell.ch = Some(' ');
+        }
+    }
+
     fn index(&self, x: i32, y: i32) -> Option<usize> {
         if x < 0 || self.width <= x || y < 0 || self.height <= y {
             None
@@ -107,7 +116,7 @@ impl Screen {
                         commands.push(Command::MoveCursor { x: x, y: y });
                     }
                     commands.push(Command::PutChar(ch));
-                    last_x = x;
+                    last_x = x + 1;
                     last_y = y;
                     if ch.width_cjk() == Some(2) {
                         last_x += 1;
