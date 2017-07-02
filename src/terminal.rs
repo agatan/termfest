@@ -63,12 +63,13 @@ impl Terminal {
         }
     }
 
-    pub fn key_bytes(&self, key: Key) -> Option<&Vec<u8>> {
+    pub fn escaped_key_bytes(&self, key: Key) -> Option<&Vec<u8>> {
         match key {
             Key::ArrowUp => self.terminfo.strings.get("kcuu1"),
             Key::ArrowDown => self.terminfo.strings.get("kcud1"),
             Key::ArrowLeft => self.terminfo.strings.get("kcub1"),
             Key::ArrowRight => self.terminfo.strings.get("kcuf1"),
+            _ => None,
         }
     }
 }

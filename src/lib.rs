@@ -5,6 +5,9 @@ extern crate term;
 extern crate libc;
 extern crate signal_notify;
 extern crate unicode_width;
+#[macro_use]
+extern crate num_derive;
+extern crate num;
 
 use std::io::prelude::*;
 use std::io;

@@ -15,21 +15,26 @@ fn main() {
                     ch => f.put_char(cursor_x, cursor_y, ch),
                 }
             }
-            Event::Key(Key::ArrowUp) => {
-                cursor_y -= 1;
-                f.move_cursor(cursor_x, cursor_y);
-            }
-            Event::Key(Key::ArrowDown) => {
-                cursor_y += 1;
-                f.move_cursor(cursor_x, cursor_y);
-            }
-            Event::Key(Key::ArrowLeft) => {
-                cursor_x -= 1;
-                f.move_cursor(cursor_x, cursor_y);
-            }
-            Event::Key(Key::ArrowRight) => {
-                cursor_x += 1;
-                f.move_cursor(cursor_x, cursor_y);
+            Event::Key(key) => {
+                match key {
+                    Key::ArrowUp | Key::CtrlP => {
+                        cursor_y -= 1;
+                        f.move_cursor(cursor_x, cursor_y);
+                    }
+                    Key::ArrowDown | Key::CtrlN => {
+                        cursor_y += 1;
+                        f.move_cursor(cursor_x, cursor_y);
+                    }
+                    Key::ArrowLeft | Key::CtrlB => {
+                        cursor_x -= 1;
+                        f.move_cursor(cursor_x, cursor_y);
+                    }
+                    Key::ArrowRight | Key::CtrlF => {
+                        cursor_x += 1;
+                        f.move_cursor(cursor_x, cursor_y);
+                    }
+                    _ => {}
+                }
             }
             Event::Resize { .. } => {}
         }
