@@ -7,15 +7,16 @@ use attr::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
-    pub ch: char,
-    pub bg: Color,
-    pub fg: Color,
+    /// None if the left side character is multi-width character like 'あ'
+    ch: Option<char>,
+    bg: Color,
+    fg: Color,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Cell {
-            ch: ' ',
+            ch: Some(' '),
             bg: Color::default(),
             fg: Color::default(),
         }
@@ -25,7 +26,7 @@ impl Default for Cell {
 impl Cell {
     pub fn new(ch: char) -> Self {
         Cell {
-            ch: ch,
+            ch: Some(ch),
             bg: Color::default(),
             fg: Color::default(),
         }
@@ -105,10 +106,10 @@ impl Screen {
 
     pub fn clear(&mut self) {
         for cell in self.painted_cells.iter_mut() {
-            cell.ch = ' ';
+            cell.ch = Some(' ');
         }
         for cell in self.cells.iter_mut() {
-            cell.ch = ' ';
+            cell.ch = Some(' ');
         }
     }
 
@@ -123,7 +124,7 @@ impl Screen {
     pub fn print(&mut self, mut x: i32, y: i32, s: &str, fg: Color, bg: Color) {
         let mut cell = Cell::default().fg(fg).bg(bg);
         for c in s.chars() {
-            cell.ch = c;
+            cell.ch = Some(c);
             self.put_char(x, y, cell);
             x += c.width().unwrap_or(1) as i32;
         }
@@ -156,17 +157,18 @@ impl Screen {
                     commands.push(Command::Bg(cell.bg));
                     last_bg = Some(cell.bg);
                 }
-                let ch = cell.ch;
-                if last_x != x || last_y != y {
-                    commands.push(Command::MoveCursor { x: x, y: y });
-                }
-                commands.push(Command::PutChar(ch));
-                last_x = x + 1;
-                last_y = y;
-                if ch.width() == Some(2) {
-                    last_x += 1;
-                    if let Some(right) = self.index(x + 1, y) {
-                        self.cells[right] = Cell { ch: ' ', ..cell };
+                if let Some(ch) = cell.ch {
+                    if last_x != x || last_y != y {
+                        commands.push(Command::MoveCursor { x: x, y: y });
+                    }
+                    commands.push(Command::PutChar(ch));
+                    last_x = x + 1;
+                    last_y = y;
+                    if ch.width() == Some(2) {
+                        last_x += 1;
+                        if let Some(right) = self.index(x + 1, y) {
+                            self.cells[right] = Cell { ch: None, ..cell };
+                        }
                     }
                 }
                 self.painted_cells[index] = self.cells[index];
