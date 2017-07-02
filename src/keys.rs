@@ -35,3 +35,12 @@ pub enum Key {
 }
 
 pub use Key::*;
+
+#[allow(non_upper_case_globals)]
+pub const Backspace: Key = Key::CtrlH;
+
+#[allow(non_upper_case_globals)]
+pub const Tab: Key = Key::CtrlI;
+
+#[allow(non_upper_case_globals)]
+pub const Enter: Key = Key::CtrlM;
