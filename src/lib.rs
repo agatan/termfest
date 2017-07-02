@@ -29,7 +29,7 @@ use screen::Screen;
 mod terminal;
 use terminal::Terminal;
 
-pub struct Festerm {
+pub struct TermFest {
     ttyout_fd: RawFd,
     ttyout: Mutex<BufWriter<File>>,
     orig_tios: termios::Termios,
@@ -40,118 +40,59 @@ pub struct Festerm {
     screen: Arc<Mutex<Screen>>,
 }
 
-pub fn hold() -> Result<(Festerm, mpsc::Receiver<Event>), io::Error> {
-    let mut ttyout = OpenOptions::new()
-        .write(true)
-        .read(false)
-        .create(false)
-        .open("/dev/tty")?;
+impl TermFest {
+    pub fn hold() -> Result<(TermFest, mpsc::Receiver<Event>), io::Error> {
+        let mut ttyout = OpenOptions::new()
+            .write(true)
+            .read(false)
+            .create(false)
+            .open("/dev/tty")?;
 
-    let orig_tios = setup_tios(ttyout.as_raw_fd())?;
+        let orig_tios = setup_tios(ttyout.as_raw_fd())?;
 
-    let terminal = Arc::new(Terminal::from_env()?);
-    terminal.enter_ca(&mut ttyout)?;
-    terminal.enter_keypad(&mut ttyout)?;
-    terminal.clear(&mut ttyout)?;
+        let terminal = Arc::new(Terminal::from_env()?);
+        terminal.enter_ca(&mut ttyout)?;
+        terminal.enter_keypad(&mut ttyout)?;
+        terminal.clear(&mut ttyout)?;
 
-    let (tx, rx) = mpsc::channel();
+        let (tx, rx) = mpsc::channel();
 
-    spawn_ttyin_reader(tx.clone(), terminal.clone())?;
+        spawn_ttyin_reader(tx.clone(), terminal.clone())?;
 
-    let (width, height) = terminal::size(ttyout.as_raw_fd());
-    let screen = Arc::new(Mutex::new(Screen::new(width, height)));
-    {
-        let ttyout_fd = ttyout.as_raw_fd();
-        let screen = screen.clone();
-        let tx = tx.clone();
-        let sigwinch = notify(&[Signal::WINCH]);
-        ::std::thread::spawn(move || loop {
-                                 if sigwinch.recv().is_err() {
-                                     break;
-                                 }
-                                 let (w, h) = terminal::size(ttyout_fd);
-                                 let mut screen = screen.lock().unwrap();
-                                 screen.resize(w, h);
-                                 if tx.send(Event::Resize {
-                                                width: w,
-                                                height: h,
-                                            })
-                                        .is_err() {
-                                     break;
-                                 }
-                             });
-    }
-
-    let fest = Festerm {
-        ttyout_fd: ttyout.as_raw_fd(),
-        ttyout: Mutex::new(BufWriter::new(ttyout)),
-        orig_tios: orig_tios,
-        terminal: terminal,
-        screen: screen,
-    };
-    Ok((fest, rx))
-}
-
-fn setup_tios(fd: ::libc::c_int) -> io::Result<termios::Termios> {
-    let orig_tios = termios::tcgetattr(fd)?;
-    let mut tios = orig_tios;
-    tios.c_iflag &= !(termios::IGNBRK | termios::BRKINT | termios::PARMRK | termios::ISTRIP |
-                      termios::INLCR |
-                      termios::IGNCR | termios::ICRNL | termios::IXON);
-    tios.c_lflag &= !(termios::ECHO | termios::ECHONL | termios::ICANON | termios::ISIG |
-                      termios::IEXTEN);
-    tios.c_cflag &= !(termios::CSIZE | termios::PARENB);
-    tios.c_cflag |= termios::CS8;
-    tios.c_cc[termios::VMIN] = 1;
-    tios.c_cc[termios::VTIME] = 0;
-    termios::tcsetattr(fd, termios::SetArg::TCSANOW, &tios)?;
-    Ok(orig_tios)
-}
-
-fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Result<()> {
-    let mut ttyin = OpenOptions::new()
-        .write(false)
-        .read(true)
-        .create(false)
-        .open("/dev/tty")?;
-    unsafe {
-        libc::fcntl(ttyin.as_raw_fd(),
-                    libc::F_SETFL,
-                    libc::O_ASYNC | libc::O_NONBLOCK);
-    }
-    let sigio = notify(&[Signal::IO]);
-    ::std::thread::spawn(move || {
-        let mut buf = Vec::new();
-        for _ in sigio.iter() {
-            let mut tmpbuf = [0; 64];
-            match ttyin.read(&mut tmpbuf) {
-                Ok(n) => buf.extend(&tmpbuf[..n]),
-                Err(e) => {
-                    match e.kind() {
-                        io::ErrorKind::WouldBlock |
-                        io::ErrorKind::InvalidInput => continue,
-                        _ => panic!(e),
-                    }
-                }
-            };
-            let mut from = 0;
-            loop {
-                if let Some((read_byte, ev)) = event::Event::parse(&buf[from..], &*term).unwrap() {
-                    from += read_byte;
-                    if tx.send(ev).is_err() {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-            buf = buf[from..].to_vec();
+        let (width, height) = terminal::size(ttyout.as_raw_fd());
+        let screen = Arc::new(Mutex::new(Screen::new(width, height)));
+        {
+            let ttyout_fd = ttyout.as_raw_fd();
+            let screen = screen.clone();
+            let tx = tx.clone();
+            let sigwinch = notify(&[Signal::WINCH]);
+            ::std::thread::spawn(move || loop {
+                                     if sigwinch.recv().is_err() {
+                                         break;
+                                     }
+                                     let (w, h) = terminal::size(ttyout_fd);
+                                     let mut screen = screen.lock().unwrap();
+                                     screen.resize(w, h);
+                                     if tx.send(Event::Resize {
+                                                    width: w,
+                                                    height: h,
+                                                })
+                                            .is_err() {
+                                         break;
+                                     }
+                                 });
         }
-    });
-    Ok(())
-}
 
-impl Festerm {
+        let fest = TermFest {
+            ttyout_fd: ttyout.as_raw_fd(),
+            ttyout: Mutex::new(BufWriter::new(ttyout)),
+            orig_tios: orig_tios,
+            terminal: terminal,
+            screen: screen,
+        };
+        Ok((fest, rx))
+    }
+
     pub fn size(&self) -> (i32, i32) {
         terminal::size(self.ttyout_fd)
     }
@@ -167,7 +108,7 @@ impl Festerm {
     }
 }
 
-impl Drop for Festerm {
+impl Drop for TermFest {
     fn drop(&mut self) {
         let mut ttyout = self.ttyout.lock().unwrap();
         self.terminal.exit_keypad(&mut *ttyout).unwrap();
@@ -236,4 +177,63 @@ impl<'a> Drop for ScreenLock<'a> {
         let _ = self.flush();
         self.flushed = true;
     }
+}
+
+fn setup_tios(fd: ::libc::c_int) -> io::Result<termios::Termios> {
+    let orig_tios = termios::tcgetattr(fd)?;
+    let mut tios = orig_tios;
+    tios.c_iflag &= !(termios::IGNBRK | termios::BRKINT | termios::PARMRK | termios::ISTRIP |
+                      termios::INLCR |
+                      termios::IGNCR | termios::ICRNL | termios::IXON);
+    tios.c_lflag &= !(termios::ECHO | termios::ECHONL | termios::ICANON | termios::ISIG |
+                      termios::IEXTEN);
+    tios.c_cflag &= !(termios::CSIZE | termios::PARENB);
+    tios.c_cflag |= termios::CS8;
+    tios.c_cc[termios::VMIN] = 1;
+    tios.c_cc[termios::VTIME] = 0;
+    termios::tcsetattr(fd, termios::SetArg::TCSANOW, &tios)?;
+    Ok(orig_tios)
+}
+
+fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Result<()> {
+    let mut ttyin = OpenOptions::new()
+        .write(false)
+        .read(true)
+        .create(false)
+        .open("/dev/tty")?;
+    unsafe {
+        libc::fcntl(ttyin.as_raw_fd(),
+                    libc::F_SETFL,
+                    libc::O_ASYNC | libc::O_NONBLOCK);
+    }
+    let sigio = notify(&[Signal::IO]);
+    ::std::thread::spawn(move || {
+        let mut buf = Vec::new();
+        for _ in sigio.iter() {
+            let mut tmpbuf = [0; 64];
+            match ttyin.read(&mut tmpbuf) {
+                Ok(n) => buf.extend(&tmpbuf[..n]),
+                Err(e) => {
+                    match e.kind() {
+                        io::ErrorKind::WouldBlock |
+                        io::ErrorKind::InvalidInput => continue,
+                        _ => panic!(e),
+                    }
+                }
+            };
+            let mut from = 0;
+            loop {
+                if let Some((read_byte, ev)) = event::Event::parse(&buf[from..], &*term).unwrap() {
+                    from += read_byte;
+                    if tx.send(ev).is_err() {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            buf = buf[from..].to_vec();
+        }
+    });
+    Ok(())
 }

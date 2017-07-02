@@ -1,10 +1,10 @@
-extern crate festerm;
+extern crate termfest;
 
-use festerm::Event;
-use festerm::keys::*;
+use termfest::{Event, TermFest};
+use termfest::keys::*;
 
 fn main() {
-    let (mut f, rx) = festerm::hold().unwrap();
+    let (f, rx) = TermFest::hold().unwrap();
     let (mut cursor_x, mut cursor_y) = (0, 0);
 
     for ev in rx.iter() {
