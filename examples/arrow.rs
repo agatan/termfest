@@ -1,10 +1,10 @@
-extern crate festival;
+extern crate festerm;
 
-use festival::Event;
-use festival::keys::*;
+use festerm::Event;
+use festerm::keys::*;
 
 fn main() {
-    let (mut f, rx) = festival::hold().unwrap();
+    let (mut f, rx) = festerm::hold().unwrap();
     let (mut cursor_x, mut cursor_y) = (0, 0);
 
     loop {
