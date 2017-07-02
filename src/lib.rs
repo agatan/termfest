@@ -21,13 +21,17 @@ use nix::sys::termios;
 use signal_notify::{notify, Signal};
 
 pub mod keys;
-pub use keys::Key;
 mod event;
-pub use event::Event;
 mod screen;
 use screen::Screen;
 mod terminal;
 use terminal::Terminal;
+mod attr;
+
+pub use keys::Key;
+pub use event::Event;
+pub use screen::Cell;
+pub use attr::{Attribute, Color};
 
 pub struct TermFest {
     ttyout_fd: RawFd,
@@ -156,12 +160,12 @@ impl<'a> ScreenLock<'a> {
         self.screen.cursor.visible = true;
     }
 
-    pub fn print(&mut self, x: i32, y: i32, s: &str) {
-        self.screen.print(x, y, s)
+    pub fn print(&mut self, x: i32, y: i32, s: &str, fg: Attribute, bg: Attribute) {
+        self.screen.print(x, y, s, fg, bg)
     }
 
-    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
-        self.screen.put_char(x, y, ch);
+    pub fn put_char(&mut self, x: i32, y: i32, cell: Cell) {
+        self.screen.put_char(x, y, cell);
     }
 
     pub fn size(&self) -> (i32, i32) {

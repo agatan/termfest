@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 use unicode_width::UnicodeWidthChar;
 
-use termfest::{TermFest, Event};
+use termfest::{TermFest, Event, Cell};
 use termfest::keys::*;
 
 struct Editor {
@@ -28,11 +28,11 @@ impl Editor {
     fn insert(&mut self, ch: char) {
         self.before_cursor.push_back(ch);
         let mut screen = self.termfest.lock();
-        screen.put_char(self.cursor, 0, ch);
+        screen.put_char(self.cursor, 0, Cell::new(ch));
         self.cursor += ch.width().unwrap_or(1) as i32;
         let mut x = self.cursor;
         for &ch in self.after_cursor.iter() {
-            screen.put_char(x, 0, ch);
+            screen.put_char(x, 0, Cell::new(ch));
             x += ch.width().unwrap_or(1) as i32;
         }
         screen.move_cursor(self.cursor, 0);
@@ -44,10 +44,10 @@ impl Editor {
             self.cursor -= ch.width().unwrap_or(1) as i32;
             let mut x = self.cursor;
             for &ch in self.after_cursor.iter() {
-                screen.put_char(x, 0, ch);
+                screen.put_char(x, 0, Cell::new(ch));
                 x += ch.width().unwrap_or(1) as i32;
             }
-            screen.put_char(x, 0, ' ');
+            screen.put_char(x, 0, Cell::new(' '));
             screen.move_cursor(self.cursor, 0);
         }
     }

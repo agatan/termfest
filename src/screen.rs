@@ -1,11 +1,43 @@
+use std::default::Default;
+
 use unicode_width::UnicodeWidthChar;
 
 use terminal::Command;
+use attr::Attribute;
 
-#[derive(Debug, Clone, Copy, Default, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
-    // `ch` is `None` if the left cell has wide character like 'あ'.
-    pub ch: Option<char>,
+    pub ch: char,
+    pub bg: Attribute,
+    pub fg: Attribute,
+}
+
+impl Default for Cell {
+    fn default() -> Self {
+        Cell {
+            ch: ' ',
+            bg: Attribute::default(),
+            fg: Attribute::default(),
+        }
+    }
+}
+
+impl Cell {
+    pub fn new(ch: char) -> Self {
+        Cell {
+            ch: ch,
+            bg: Attribute::default(),
+            fg: Attribute::default(),
+        }
+    }
+
+    pub fn fg(self, attr: Attribute) -> Self {
+        Cell { fg: attr, ..self }
+    }
+
+    pub fn bg(self, attr: Attribute) -> Self {
+        Cell { bg: attr, ..self }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -33,14 +65,14 @@ impl Screen {
         Screen {
             width: width,
             height: height,
-            cells: vec![Cell { ch: Some(' ') }; (width * height) as usize],
+            cells: vec![Cell::default(); (width * height) as usize],
             cursor: Cursor {
                 x: 0,
                 y: 0,
                 visible: true,
             },
 
-            painted_cells: vec![Cell { ch: Some(' ') }; (width * height) as usize],
+            painted_cells: vec![Cell::default(); (width * height) as usize],
             painted_cursor: Cursor {
                 x: 0,
                 y: 0,
@@ -50,7 +82,7 @@ impl Screen {
     }
 
     fn copy_cells(&self, original: &[Cell], width: i32, height: i32) -> Vec<Cell> {
-        let mut new_cells = vec![Cell { ch: Some(' ') }; (width * height) as usize];
+        let mut new_cells = vec![Cell::default(); (width * height) as usize];
         use std::cmp;
         let min_height = cmp::min(height, self.height);
         let min_width = cmp::min(width, self.width);
@@ -73,10 +105,10 @@ impl Screen {
 
     pub fn clear(&mut self) {
         for cell in self.painted_cells.iter_mut() {
-            cell.ch = Some(' ');
+            cell.ch = ' ';
         }
         for cell in self.cells.iter_mut() {
-            cell.ch = Some(' ');
+            cell.ch = ' ';
         }
     }
 
@@ -88,16 +120,18 @@ impl Screen {
         }
     }
 
-    pub fn print(&mut self, mut x: i32, y: i32, s: &str) {
+    pub fn print(&mut self, mut x: i32, y: i32, s: &str, fg: Attribute, bg: Attribute) {
+        let mut cell = Cell::default().fg(fg).bg(bg);
         for c in s.chars() {
-            self.put_char(x, y, c);
+            cell.ch = c;
+            self.put_char(x, y, cell);
             x += c.width().unwrap_or(1) as i32;
         }
     }
 
-    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
+    pub fn put_char(&mut self, x: i32, y: i32, cell: Cell) {
         if let Some(i) = self.index(x, y) {
-            self.cells[i].ch = Some(ch);
+            self.cells[i] = cell;
         }
     }
 
@@ -111,18 +145,17 @@ impl Screen {
                 if self.painted_cells[index] == self.cells[index] {
                     continue;
                 }
-                if let Some(ch) = self.cells[index].ch {
-                    if last_x != x || last_y != y {
-                        commands.push(Command::MoveCursor { x: x, y: y });
-                    }
-                    commands.push(Command::PutChar(ch));
-                    last_x = x + 1;
-                    last_y = y;
-                    if ch.width() == Some(2) {
-                        last_x += 1;
-                        if let Some(right) = self.index(x + 1, y) {
-                            self.cells[right].ch = None;
-                        }
+                let ch = self.cells[index].ch;
+                if last_x != x || last_y != y {
+                    commands.push(Command::MoveCursor { x: x, y: y });
+                }
+                commands.push(Command::PutChar(ch));
+                last_x = x + 1;
+                last_y = y;
+                if ch.width() == Some(2) {
+                    last_x += 1;
+                    if let Some(right) = self.index(x + 1, y) {
+                        self.cells[right].ch = ' ';
                     }
                 }
                 self.painted_cells[index] = self.cells[index];

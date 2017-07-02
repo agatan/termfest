@@ -4,6 +4,7 @@ use term::terminfo::TermInfo;
 use libc;
 
 use keys::Key;
+use attr::Color;
 
 #[derive(Debug)]
 pub struct Terminal {
@@ -79,6 +80,36 @@ impl Terminal {
             Key::ArrowRight => self.terminfo.strings.get("kcuf1"),
             _ => None,
         }
+    }
+
+    pub fn fg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
+        let bytes = match color {
+            Color::Default => return Ok(()),
+            Color::Black => "\u{1b}[30m",
+            Color::Red => "\u{1b}[31m",
+            Color::Green => "\u{1b}[32m",
+            Color::Yellow => "\u{1b}[33m",
+            Color::Blue => "\u{1b}[34m",
+            Color::Magenta => "\u{1b}[35m",
+            Color::Cyan => "\u{1b}[36m",
+            Color::White => "\u{1b}[37m",
+        };
+        w.write_all(bytes.as_bytes())
+    }
+
+    pub fn bg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
+        let bytes = match color {
+            Color::Default => return Ok(()),
+            Color::Black => "\u{1b}[30m",
+            Color::Red => "\u{1b}[31m",
+            Color::Green => "\u{1b}[32m",
+            Color::Yellow => "\u{1b}[33m",
+            Color::Blue => "\u{1b}[34m",
+            Color::Magenta => "\u{1b}[35m",
+            Color::Cyan => "\u{1b}[36m",
+            Color::White => "\u{1b}[37m",
+        };
+        w.write_all(bytes.as_bytes())
     }
 }
 
