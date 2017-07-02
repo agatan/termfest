@@ -9,7 +9,7 @@ fn main() {
     loop {
         let ev = rx.recv().unwrap();
         match ev {
-            Event::Key(Key::Char(ch)) => {
+            Event::Char(ch) => {
                 match ch {
                     'q' => break,
                     ch => f.put_char(cursor_x, cursor_y, ch),

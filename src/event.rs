@@ -4,13 +4,13 @@ use terminal::Terminal;
 
 #[derive(Debug, Clone)]
 pub enum Event {
+    Char(char),
     Key(Key),
     Resize { width: i32, height: i32 },
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum Key {
-    Char(char),
     ArrowUp,
     ArrowDown,
     ArrowLeft,
@@ -42,7 +42,7 @@ impl Event {
             Some(Err(io::CharsError::NotUtf8)) => return Ok(None),
             Some(Err(io::CharsError::Other(err))) => return Err(err.into()),
         };
-        Ok(Some((ch.len_utf8(), Event::Key(Key::Char(ch)))))
+        Ok(Some((ch.len_utf8(), Event::Char(ch))))
     }
 
     fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
