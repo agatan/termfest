@@ -3,21 +3,21 @@ use std::default::Default;
 use unicode_width::UnicodeWidthChar;
 
 use terminal::Command;
-use attr::Attribute;
+use attr::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
     pub ch: char,
-    pub bg: Attribute,
-    pub fg: Attribute,
+    pub bg: Color,
+    pub fg: Color,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Cell {
             ch: ' ',
-            bg: Attribute::default(),
-            fg: Attribute::default(),
+            bg: Color::default(),
+            fg: Color::default(),
         }
     }
 }
@@ -26,16 +26,16 @@ impl Cell {
     pub fn new(ch: char) -> Self {
         Cell {
             ch: ch,
-            bg: Attribute::default(),
-            fg: Attribute::default(),
+            bg: Color::default(),
+            fg: Color::default(),
         }
     }
 
-    pub fn fg(self, attr: Attribute) -> Self {
+    pub fn fg(self, attr: Color) -> Self {
         Cell { fg: attr, ..self }
     }
 
-    pub fn bg(self, attr: Attribute) -> Self {
+    pub fn bg(self, attr: Color) -> Self {
         Cell { bg: attr, ..self }
     }
 }
@@ -120,7 +120,7 @@ impl Screen {
         }
     }
 
-    pub fn print(&mut self, mut x: i32, y: i32, s: &str, fg: Attribute, bg: Attribute) {
+    pub fn print(&mut self, mut x: i32, y: i32, s: &str, fg: Color, bg: Color) {
         let mut cell = Cell::default().fg(fg).bg(bg);
         for c in s.chars() {
             cell.ch = c;
@@ -139,13 +139,24 @@ impl Screen {
         let mut commands = Vec::new();
         let mut last_x = -1;
         let mut last_y = -1;
+        let mut last_fg = None;
+        let mut last_bg = None;
         for y in 0..self.height {
             for x in 0..self.width {
                 let index = self.index(x, y).unwrap();
                 if self.painted_cells[index] == self.cells[index] {
                     continue;
                 }
-                let ch = self.cells[index].ch;
+                let cell = self.cells[index];
+                if Some(cell.fg) != last_fg {
+                    commands.push(Command::Fg(cell.fg));
+                    last_fg = Some(cell.fg);
+                }
+                if Some(cell.bg) != last_bg {
+                    commands.push(Command::Bg(cell.bg));
+                    last_bg = Some(cell.bg);
+                }
+                let ch = cell.ch;
                 if last_x != x || last_y != y {
                     commands.push(Command::MoveCursor { x: x, y: y });
                 }

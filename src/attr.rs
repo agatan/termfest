@@ -1,10 +1,5 @@
 use std::default::Default;
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct Attribute {
-    pub color: Color,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Color {
     Default,

@@ -63,28 +63,9 @@ impl Terminal {
         w.write_all(ch.encode_utf8(&mut buf).as_bytes())
     }
 
-    pub fn write<W: Write>(&self, w: W, command: Command) -> io::Result<()> {
-        match command {
-            Command::HideCursor => self.hide_cursor(w),
-            Command::ShowCursor => self.show_cursor(w),
-            Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
-            Command::PutChar(ch) => self.put_char(w, ch),
-        }
-    }
-
-    pub fn escaped_key_bytes(&self, key: Key) -> Option<&Vec<u8>> {
-        match key {
-            Key::ArrowUp => self.terminfo.strings.get("kcuu1"),
-            Key::ArrowDown => self.terminfo.strings.get("kcud1"),
-            Key::ArrowLeft => self.terminfo.strings.get("kcub1"),
-            Key::ArrowRight => self.terminfo.strings.get("kcuf1"),
-            _ => None,
-        }
-    }
-
     pub fn fg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
         let bytes = match color {
-            Color::Default => return Ok(()),
+            Color::Default => "\u{1b}[39m",
             Color::Black => "\u{1b}[30m",
             Color::Red => "\u{1b}[31m",
             Color::Green => "\u{1b}[32m",
@@ -99,17 +80,38 @@ impl Terminal {
 
     pub fn bg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
         let bytes = match color {
-            Color::Default => return Ok(()),
-            Color::Black => "\u{1b}[30m",
-            Color::Red => "\u{1b}[31m",
-            Color::Green => "\u{1b}[32m",
-            Color::Yellow => "\u{1b}[33m",
-            Color::Blue => "\u{1b}[34m",
-            Color::Magenta => "\u{1b}[35m",
-            Color::Cyan => "\u{1b}[36m",
-            Color::White => "\u{1b}[37m",
+            Color::Default => "\u{1b}[49m",
+            Color::Black => "\u{1b}[40m",
+            Color::Red => "\u{1b}[41m",
+            Color::Green => "\u{1b}[42m",
+            Color::Yellow => "\u{1b}[43m",
+            Color::Blue => "\u{1b}[44m",
+            Color::Magenta => "\u{1b}[45m",
+            Color::Cyan => "\u{1b}[46m",
+            Color::White => "\u{1b}[47m",
         };
         w.write_all(bytes.as_bytes())
+    }
+
+    pub fn write<W: Write>(&self, w: W, command: Command) -> io::Result<()> {
+        match command {
+            Command::HideCursor => self.hide_cursor(w),
+            Command::ShowCursor => self.show_cursor(w),
+            Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
+            Command::PutChar(ch) => self.put_char(w, ch),
+            Command::Fg(c) => self.fg(w, c),
+            Command::Bg(c) => self.bg(w, c),
+        }
+    }
+
+    pub fn escaped_key_bytes(&self, key: Key) -> Option<&Vec<u8>> {
+        match key {
+            Key::ArrowUp => self.terminfo.strings.get("kcuu1"),
+            Key::ArrowDown => self.terminfo.strings.get("kcud1"),
+            Key::ArrowLeft => self.terminfo.strings.get("kcub1"),
+            Key::ArrowRight => self.terminfo.strings.get("kcuf1"),
+            _ => None,
+        }
     }
 }
 
@@ -119,6 +121,8 @@ pub enum Command {
     ShowCursor,
     MoveCursor { x: i32, y: i32 },
     PutChar(char),
+    Fg(Color),
+    Bg(Color),
 }
 
 pub fn size(fd: libc::c_int) -> (i32, i32) {
