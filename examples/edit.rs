@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 use unicode_width::UnicodeWidthChar;
 
-use festerm::{Festival, Event};
+use festerm::{Festerm, Event};
 use festerm::keys::*;
 
 #[derive(Default)]
@@ -35,7 +35,7 @@ impl Editor {
         }
     }
 
-    fn show(&self, fest: &mut Festival) {
+    fn show(&self, fest: &mut Festerm) {
         fest.clear();
         fest.print(0,
                    0,

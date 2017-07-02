@@ -29,7 +29,7 @@ use screen::Screen;
 mod terminal;
 use terminal::Terminal;
 
-pub struct Festival {
+pub struct Festerm {
     ttyout: File,
     orig_tios: termios::Termios,
 
@@ -40,7 +40,7 @@ pub struct Festival {
     write_buffer: Vec<u8>,
 }
 
-pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
+pub fn hold() -> Result<(Festerm, mpsc::Receiver<Event>), io::Error> {
     let mut ttyout = OpenOptions::new()
         .write(true)
         .read(false)
@@ -82,7 +82,7 @@ pub fn hold() -> Result<(Festival, mpsc::Receiver<Event>), io::Error> {
                              });
     }
 
-    let fest = Festival {
+    let fest = Festerm {
         ttyout: ttyout,
         orig_tios: orig_tios,
         terminal: terminal,
@@ -151,7 +151,7 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
     Ok(())
 }
 
-impl Festival {
+impl Festerm {
     fn flush_to_buffer(&mut self) -> io::Result<()> {
         for command in self.screen.lock().unwrap().flush_commands() {
             self.terminal.write(&mut self.write_buffer, command)?;
@@ -198,7 +198,7 @@ impl Festival {
     }
 }
 
-impl Drop for Festival {
+impl Drop for Festerm {
     fn drop(&mut self) {
         self.terminal.exit_keypad(&mut self.ttyout).unwrap();
         self.terminal.exit_ca(&mut self.ttyout).unwrap();
