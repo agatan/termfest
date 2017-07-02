@@ -3,22 +3,20 @@ use std::default::Default;
 use unicode_width::UnicodeWidthChar;
 
 use terminal::Command;
-use attr::Color;
+use attr::{Color, Attribute, Effect};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
     /// None if the left side character is multi-width character like 'あ'
     ch: Option<char>,
-    bg: Color,
-    fg: Color,
+    attribute: Attribute,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Cell {
             ch: Some(' '),
-            bg: Color::default(),
-            fg: Color::default(),
+            attribute: Attribute::default(),
         }
     }
 }
@@ -27,17 +25,23 @@ impl Cell {
     pub fn new(ch: char) -> Self {
         Cell {
             ch: Some(ch),
-            bg: Color::default(),
-            fg: Color::default(),
+            attribute: Attribute::default(),
         }
     }
 
-    pub fn fg(self, attr: Color) -> Self {
-        Cell { fg: attr, ..self }
+    pub fn fg(mut self, fg: Color) -> Self {
+        self.attribute.fg = fg;
+        self
     }
 
-    pub fn bg(self, attr: Color) -> Self {
-        Cell { bg: attr, ..self }
+    pub fn bg(mut self, bg: Color) -> Self {
+        self.attribute.bg = bg;
+        self
+    }
+
+    pub fn effect(mut self, effect: Effect) -> Self {
+        self.attribute.effect = effect;
+        self
     }
 }
 
@@ -140,8 +144,8 @@ impl Screen {
         let mut commands = Vec::new();
         let mut last_x = -1;
         let mut last_y = -1;
-        let mut last_fg = None;
-        let mut last_bg = None;
+        let mut last_attr = Attribute::default();
+        commands.push(Command::ResetAttr);
         for y in 0..self.height {
             for x in 0..self.width {
                 let index = self.index(x, y).unwrap();
@@ -149,13 +153,17 @@ impl Screen {
                     continue;
                 }
                 let cell = self.cells[index];
-                if Some(cell.fg) != last_fg {
-                    commands.push(Command::Fg(cell.fg));
-                    last_fg = Some(cell.fg);
-                }
-                if Some(cell.bg) != last_bg {
-                    commands.push(Command::Bg(cell.bg));
-                    last_bg = Some(cell.bg);
+                if cell.attribute != last_attr {
+                    if last_attr.fg != cell.attribute.fg {
+                        commands.push(Command::Fg(cell.attribute.fg));
+                    }
+                    if last_attr.bg != cell.attribute.bg {
+                        commands.push(Command::Bg(cell.attribute.bg));
+                    }
+                    if last_attr.effect != cell.attribute.effect {
+                        commands.push(Command::Effect(cell.attribute.effect));
+                    }
+                    last_attr = cell.attribute;
                 }
                 if let Some(ch) = cell.ch {
                     if last_x != x || last_y != y {

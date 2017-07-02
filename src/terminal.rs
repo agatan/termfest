@@ -4,7 +4,7 @@ use term::terminfo::TermInfo;
 use libc;
 
 use keys::Key;
-use attr::Color;
+use attr::{Color, Effect, BOLD, DIM, UNDERLINE, BLINK, REVERSE};
 
 #[derive(Debug)]
 pub struct Terminal {
@@ -63,6 +63,10 @@ impl Terminal {
         w.write_all(ch.encode_utf8(&mut buf).as_bytes())
     }
 
+    pub fn reset_attr<W: Write>(&self, w: W) -> io::Result<()> {
+        self.write_if_exists(w, "sgr0")
+    }
+
     pub fn fg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
         let bytes = match color {
             Color::Default => "\u{1b}[39m",
@@ -93,14 +97,35 @@ impl Terminal {
         w.write_all(bytes.as_bytes())
     }
 
+    pub fn effect<W: Write>(&self, mut w: W, effect: Effect) -> io::Result<()> {
+        if effect.contains(BOLD) {
+            self.write_if_exists(&mut w, "bold")?;
+        }
+        if effect.contains(DIM) {
+            self.write_if_exists(&mut w, "dim")?;
+        }
+        if effect.contains(UNDERLINE) {
+            self.write_if_exists(&mut w, "smul")?;
+        }
+        if effect.contains(BLINK) {
+            self.write_if_exists(&mut w, "blink")?;
+        }
+        if effect.contains(REVERSE) {
+            self.write_if_exists(&mut w, "rev")?;
+        }
+        Ok(())
+    }
+
     pub fn write<W: Write>(&self, w: W, command: Command) -> io::Result<()> {
         match command {
             Command::HideCursor => self.hide_cursor(w),
             Command::ShowCursor => self.show_cursor(w),
             Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
             Command::PutChar(ch) => self.put_char(w, ch),
+            Command::ResetAttr => self.reset_attr(w),
             Command::Fg(c) => self.fg(w, c),
             Command::Bg(c) => self.bg(w, c),
+            Command::Effect(a) => self.effect(w, a),
         }
     }
 
@@ -121,8 +146,10 @@ pub enum Command {
     ShowCursor,
     MoveCursor { x: i32, y: i32 },
     PutChar(char),
+    ResetAttr,
     Fg(Color),
     Bg(Color),
+    Effect(Effect),
 }
 
 pub fn size(fd: libc::c_int) -> (i32, i32) {

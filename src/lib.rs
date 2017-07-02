@@ -7,6 +7,8 @@ extern crate unicode_width;
 #[macro_use]
 extern crate num_derive;
 extern crate num;
+#[macro_use]
+extern crate bitflags;
 
 use std::io::prelude::*;
 use std::io::{self, BufWriter};
