@@ -26,12 +26,12 @@ mod screen;
 use screen::Screen;
 mod terminal;
 use terminal::Terminal;
-mod attr;
+pub mod attr;
 
 pub use keys::Key;
 pub use event::Event;
 pub use screen::Cell;
-pub use attr::Color;
+pub use attr::{Attribute, Color, Effect};
 
 pub struct TermFest {
     ttyout_fd: RawFd,
@@ -165,8 +165,8 @@ impl<'a> ScreenLock<'a> {
         self.screen.cursor.visible = true;
     }
 
-    pub fn print(&mut self, x: i32, y: i32, s: &str, fg: Color, bg: Color) {
-        self.screen.print(x, y, s, fg, bg)
+    pub fn print(&mut self, x: i32, y: i32, s: &str, attr: Attribute) {
+        self.screen.print(x, y, s, attr)
     }
 
     pub fn put_char(&mut self, x: i32, y: i32, cell: Cell) {

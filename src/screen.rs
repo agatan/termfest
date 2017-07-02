@@ -125,8 +125,11 @@ impl Screen {
         }
     }
 
-    pub fn print(&mut self, mut x: i32, y: i32, s: &str, fg: Color, bg: Color) {
-        let mut cell = Cell::default().fg(fg).bg(bg);
+    pub fn print(&mut self, mut x: i32, y: i32, s: &str, attr: Attribute) {
+        let mut cell = Cell {
+            attribute: attr,
+            ..Cell::default()
+        };
         for c in s.chars() {
             cell.ch = Some(c);
             self.put_char(x, y, cell);
@@ -154,6 +157,7 @@ impl Screen {
                 }
                 let cell = self.cells[index];
                 if cell.attribute != last_attr {
+                    commands.push(Command::ResetAttr);
                     if last_attr.fg != cell.attribute.fg {
                         commands.push(Command::Fg(cell.attribute.fg));
                     }
