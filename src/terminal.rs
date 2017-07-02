@@ -3,6 +3,8 @@ use std::io::{self, Write};
 use term::terminfo::TermInfo;
 use libc;
 
+use event::Key;
+
 #[derive(Debug)]
 pub struct Terminal {
     terminfo: TermInfo,
@@ -61,20 +63,14 @@ impl Terminal {
         }
     }
 
-    pub fn arrow_up(&self) -> &[u8] {
-        &self.terminfo.strings["kcuu1"]
-    }
-
-    pub fn arrow_down(&self) -> &[u8] {
-        &self.terminfo.strings["kcud1"]
-    }
-
-    pub fn arrow_left(&self) -> &[u8] {
-        &self.terminfo.strings["kcub1"]
-    }
-
-    pub fn arrow_right(&self) -> &[u8] {
-        &self.terminfo.strings["kcuf1"]
+    pub fn key_bytes(&self, key: Key) -> Option<&Vec<u8>> {
+        match key {
+            Key::ArrowUp => self.terminfo.strings.get("kcuu1"),
+            Key::ArrowDown => self.terminfo.strings.get("kcud1"),
+            Key::ArrowLeft => self.terminfo.strings.get("kcub1"),
+            Key::ArrowRight => self.terminfo.strings.get("kcuf1"),
+            Key::Char(_) => None,
+        }
     }
 }
 
