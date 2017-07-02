@@ -24,23 +24,23 @@ impl Terminal {
         }
     }
 
-    pub fn enter_ca<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn enter_ca<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "smcup")
     }
 
-    pub fn exit_ca<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn exit_ca<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "rmcup")
     }
 
-    pub fn enter_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn enter_keypad<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "smkx")
     }
 
-    pub fn exit_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn exit_keypad<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "rmkx")
     }
 
-    pub fn clear<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn clear<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "clear")
     }
 
@@ -49,11 +49,11 @@ impl Terminal {
         write!(w, "[{};{}H", y + 1, x + 1)
     }
 
-    pub fn hide_cursor<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn hide_cursor<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "civis")
     }
 
-    pub fn show_cursor<W: Write>(&self, mut w: W) -> io::Result<()> {
+    pub fn show_cursor<W: Write>(&self, w: W) -> io::Result<()> {
         self.write_if_exists(w, "cnorm")
     }
 
