@@ -79,6 +79,13 @@ impl Screen {
         }
     }
 
+    pub fn print(&mut self, mut x: i32, y: i32, s: &str) {
+        for c in s.chars() {
+            self.put_char(x, y, c);
+            x += c.width_cjk().unwrap_or(1) as i32;
+        }
+    }
+
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
         if let Some(i) = self.index(x, y) {
             self.cells[i].ch = Some(ch);

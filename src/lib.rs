@@ -184,6 +184,10 @@ impl Festival {
         self.screen.lock().unwrap().cursor.visible = true;
     }
 
+    pub fn print(&mut self, x: i32, y: i32, s: &str) {
+        self.screen.lock().unwrap().print(x, y, s)
+    }
+
     pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
         self.screen.lock().unwrap().put_char(x, y, ch);
     }
