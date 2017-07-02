@@ -17,6 +17,11 @@ pub enum Key {
     ArrowRight,
 }
 
+static ESCAPE_KEYS: [Key; 4] = [Key::ArrowUp,
+                                Key::ArrowDown,
+                                Key::ArrowLeft,
+                                Key::ArrowRight];
+
 impl Event {
     /// Parse event from buffer. Returns `Err` if any IO error occurs.
     /// `Ok(None)` means 'no error occurs, but buffered bytes is not enough'.
@@ -43,12 +48,7 @@ impl Event {
     fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
         debug_assert!(buf[0] == b'\x1b');
 
-        let keys = [Key::ArrowUp,
-                    Key::ArrowDown,
-                    Key::ArrowLeft,
-                    Key::ArrowRight];
-
-        for &key in keys.iter() {
+        for &key in ESCAPE_KEYS.iter() {
             if let Some(keybytes) = term.key_bytes(key) {
                 if buf.starts_with(keybytes) {
                     return Ok(Some((keybytes.len(), Event::Key(key))));
