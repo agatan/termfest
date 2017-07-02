@@ -16,24 +16,32 @@ impl Terminal {
         Ok(Terminal { terminfo: terminfo })
     }
 
+    fn write_if_exists<W: Write>(&self, mut w: W, typ: &str) -> io::Result<()> {
+        if let Some(bytes) = self.terminfo.strings.get(typ) {
+            w.write_all(bytes)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn enter_ca<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["smcup"])
+        self.write_if_exists(w, "smcup")
     }
 
     pub fn exit_ca<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["rmcup"])
+        self.write_if_exists(w, "rmcup")
     }
 
     pub fn enter_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["smkx"])
+        self.write_if_exists(w, "smkx")
     }
 
     pub fn exit_keypad<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["rmkx"])
+        self.write_if_exists(w, "rmkx")
     }
 
     pub fn clear<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["clear"])
+        self.write_if_exists(w, "clear")
     }
 
     pub fn move_cursor<W: Write>(&self, mut w: W, x: i32, y: i32) -> io::Result<()> {
@@ -42,11 +50,11 @@ impl Terminal {
     }
 
     pub fn hide_cursor<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["civis"])
+        self.write_if_exists(w, "civis")
     }
 
     pub fn show_cursor<W: Write>(&self, mut w: W) -> io::Result<()> {
-        w.write_all(&self.terminfo.strings["cnorm"])
+        self.write_if_exists(w, "cnorm")
     }
 
     pub fn put_char<W: Write>(&self, mut w: W, ch: char) -> io::Result<()> {
