@@ -13,7 +13,7 @@ use std::io::prelude::*;
 use std::io;
 use std::fs::{File, OpenOptions};
 use std::ops::Drop;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex, MutexGuard};
 
 use std::os::unix::io::AsRawFd;
 
@@ -166,35 +166,17 @@ impl Festerm {
         Ok(())
     }
 
-    pub fn clear(&mut self) {
-        self.screen.lock().unwrap().clear();
-        self.terminal.clear(&mut self.write_buffer).unwrap()
-    }
-
-    pub fn move_cursor(&mut self, x: i32, y: i32) {
-        let mut screen = self.screen.lock().unwrap();
-        screen.cursor.x = x;
-        screen.cursor.y = y;
-    }
-
-    pub fn hide_cursor(&mut self) {
-        self.screen.lock().unwrap().cursor.visible = false;
-    }
-
-    pub fn show_cursor(&mut self) {
-        self.screen.lock().unwrap().cursor.visible = true;
-    }
-
-    pub fn print(&mut self, x: i32, y: i32, s: &str) {
-        self.screen.lock().unwrap().print(x, y, s)
-    }
-
-    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
-        self.screen.lock().unwrap().put_char(x, y, ch);
-    }
-
     pub fn size(&self) -> (i32, i32) {
         terminal::size(self.ttyout.as_raw_fd())
+    }
+
+    pub fn lock_screen(&mut self) -> ScreenLock {
+        ScreenLock {
+            flushed: false,
+            screen: self.screen.lock().unwrap(),
+            ttyout: &mut self.ttyout,
+            terminal: &self.terminal,
+        }
     }
 }
 
@@ -206,5 +188,61 @@ impl Drop for Festerm {
                            termios::SetArg::TCSANOW,
                            &self.orig_tios)
                 .unwrap();
+    }
+}
+
+pub struct ScreenLock<'a> {
+    flushed: bool,
+    screen: MutexGuard<'a, Screen>,
+    ttyout: &'a mut File,
+    terminal: &'a Terminal,
+}
+
+impl<'a> ScreenLock<'a> {
+    pub fn flush(&mut self) -> io::Result<()> {
+        for command in self.screen.flush_commands() {
+            self.terminal.write(&mut self.ttyout, command)?;
+        }
+        Ok(())
+    }
+
+    pub fn clear(&mut self) {
+        self.screen.clear();
+        self.terminal.clear(&mut self.ttyout).unwrap()
+    }
+
+    pub fn move_cursor(&mut self, x: i32, y: i32) {
+        self.screen.cursor.x = x;
+        self.screen.cursor.y = y;
+    }
+
+    pub fn hide_cursor(&mut self) {
+        self.screen.cursor.visible = false;
+    }
+
+    pub fn show_cursor(&mut self) {
+        self.screen.cursor.visible = true;
+    }
+
+    pub fn print(&mut self, x: i32, y: i32, s: &str) {
+        self.screen.print(x, y, s)
+    }
+
+    pub fn put_char(&mut self, x: i32, y: i32, ch: char) {
+        self.screen.put_char(x, y, ch);
+    }
+
+    pub fn size(&self) -> (i32, i32) {
+        terminal::size(self.ttyout.as_raw_fd())
+    }
+}
+
+impl<'a> Drop for ScreenLock<'a> {
+    fn drop(&mut self) {
+        if self.flushed {
+            return;
+        }
+        let _ = self.flush();
+        self.flushed = true;
     }
 }

@@ -36,21 +36,21 @@ impl Editor {
     }
 
     fn show(&self, fest: &mut Festerm) {
-        fest.clear();
-        fest.print(0,
-                   0,
-                   self.before_cursor
-                       .iter()
-                       .chain(self.after_cursor.iter())
-                       .cloned()
-                       .collect::<String>()
-                       .as_str());
-        fest.move_cursor(self.before_cursor
-                             .iter()
-                             .map(|ch| ch.width_cjk().unwrap_or(1) as i32)
-                             .sum(),
-                         0);
-        fest.flush().unwrap();
+        let mut screen = fest.lock_screen();
+        screen.clear();
+        screen.print(0,
+                     0,
+                     self.before_cursor
+                         .iter()
+                         .chain(self.after_cursor.iter())
+                         .cloned()
+                         .collect::<String>()
+                         .as_str());
+        screen.move_cursor(self.before_cursor
+                               .iter()
+                               .map(|ch| ch.width_cjk().unwrap_or(1) as i32)
+                               .sum(),
+                           0);
     }
 }
 
