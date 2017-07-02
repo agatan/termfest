@@ -29,11 +29,11 @@ impl Editor {
         self.before_cursor.push_back(ch);
         let mut screen = self.termfest.lock();
         screen.put_char(self.cursor, 0, ch);
-        self.cursor += ch.width_cjk().unwrap_or(1) as i32;
+        self.cursor += ch.width().unwrap_or(1) as i32;
         let mut x = self.cursor;
         for &ch in self.after_cursor.iter() {
             screen.put_char(x, 0, ch);
-            x += ch.width_cjk().unwrap_or(1) as i32;
+            x += ch.width().unwrap_or(1) as i32;
         }
         screen.move_cursor(self.cursor, 0);
     }
@@ -41,11 +41,11 @@ impl Editor {
     fn backspace(&mut self) {
         if let Some(ch) = self.before_cursor.pop_back() {
             let mut screen = self.termfest.lock();
-            self.cursor -= ch.width_cjk().unwrap_or(1) as i32;
+            self.cursor -= ch.width().unwrap_or(1) as i32;
             let mut x = self.cursor;
             for &ch in self.after_cursor.iter() {
                 screen.put_char(x, 0, ch);
-                x += ch.width_cjk().unwrap_or(1) as i32;
+                x += ch.width().unwrap_or(1) as i32;
             }
             screen.put_char(x, 0, ' ');
             screen.move_cursor(self.cursor, 0);
@@ -55,7 +55,7 @@ impl Editor {
     fn move_left(&mut self) {
         if let Some(ch) = self.before_cursor.pop_back() {
             self.after_cursor.push_front(ch);
-            self.cursor -= ch.width_cjk().unwrap_or(1) as i32;
+            self.cursor -= ch.width().unwrap_or(1) as i32;
             self.termfest.lock().move_cursor(self.cursor, 0);
         }
     }
@@ -63,7 +63,7 @@ impl Editor {
     fn move_right(&mut self) {
         if let Some(ch) = self.after_cursor.pop_front() {
             self.before_cursor.push_back(ch);
-            self.cursor += ch.width_cjk().unwrap_or(1) as i32;
+            self.cursor += ch.width().unwrap_or(1) as i32;
             self.termfest.lock().move_cursor(self.cursor, 0);
         }
     }
