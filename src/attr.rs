@@ -28,6 +28,8 @@ pub enum Color {
     Magenta,
     Cyan,
     White,
+    /// Specify Colors with 0 ~ 255 index
+    EightBit(u8),
 }
 
 impl Default for Color {

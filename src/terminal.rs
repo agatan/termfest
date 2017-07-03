@@ -68,33 +68,33 @@ impl Terminal {
     }
 
     pub fn fg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
-        let bytes = match color {
-            Color::Default => "\u{1b}[39m",
-            Color::Black => "\u{1b}[30m",
-            Color::Red => "\u{1b}[31m",
-            Color::Green => "\u{1b}[32m",
-            Color::Yellow => "\u{1b}[33m",
-            Color::Blue => "\u{1b}[34m",
-            Color::Magenta => "\u{1b}[35m",
-            Color::Cyan => "\u{1b}[36m",
-            Color::White => "\u{1b}[37m",
-        };
-        w.write_all(bytes.as_bytes())
+        match color {
+            Color::Default => w.write_all("\u{1b}[39m".as_bytes()),
+            Color::Black => w.write_all("\u{1b}[30m".as_bytes()),
+            Color::Red => w.write_all("\u{1b}[31m".as_bytes()),
+            Color::Green => w.write_all("\u{1b}[32m".as_bytes()),
+            Color::Yellow => w.write_all("\u{1b}[33m".as_bytes()),
+            Color::Blue => w.write_all("\u{1b}[34m".as_bytes()),
+            Color::Magenta => w.write_all("\u{1b}[35m".as_bytes()),
+            Color::Cyan => w.write_all("\u{1b}[36m".as_bytes()),
+            Color::White => w.write_all("\u{1b}[37m".as_bytes()),
+            Color::EightBit(x) => write!(w, "\u{1b}[38;5;{}m", x),
+        }
     }
 
     pub fn bg<W: Write>(&self, mut w: W, color: Color) -> io::Result<()> {
-        let bytes = match color {
-            Color::Default => "\u{1b}[49m",
-            Color::Black => "\u{1b}[40m",
-            Color::Red => "\u{1b}[41m",
-            Color::Green => "\u{1b}[42m",
-            Color::Yellow => "\u{1b}[43m",
-            Color::Blue => "\u{1b}[44m",
-            Color::Magenta => "\u{1b}[45m",
-            Color::Cyan => "\u{1b}[46m",
-            Color::White => "\u{1b}[47m",
-        };
-        w.write_all(bytes.as_bytes())
+        match color {
+            Color::Default => w.write_all("\u{1b}[49m".as_bytes()),
+            Color::Black => w.write_all("\u{1b}[40m".as_bytes()),
+            Color::Red => w.write_all("\u{1b}[41m".as_bytes()),
+            Color::Green => w.write_all("\u{1b}[42m".as_bytes()),
+            Color::Yellow => w.write_all("\u{1b}[43m".as_bytes()),
+            Color::Blue => w.write_all("\u{1b}[44m".as_bytes()),
+            Color::Magenta => w.write_all("\u{1b}[45m".as_bytes()),
+            Color::Cyan => w.write_all("\u{1b}[46m".as_bytes()),
+            Color::White => w.write_all("\u{1b}[47m".as_bytes()),
+            Color::EightBit(x) => write!(w, "\u{1b}[48;5;{}m", x),
+        }
     }
 
     pub fn effect<W: Write>(&self, mut w: W, effect: Effect) -> io::Result<()> {
