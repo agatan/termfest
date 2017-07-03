@@ -30,6 +30,8 @@ pub enum Color {
     White,
     /// Specify Colors with 0 ~ 255 index
     EightBit(u8),
+    /// Specify colors with RGB (true color)
+    Rgb(u8, u8, u8),
 }
 
 impl Default for Color {

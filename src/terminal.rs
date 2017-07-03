@@ -79,6 +79,7 @@ impl Terminal {
             Color::Cyan => w.write_all("\u{1b}[36m".as_bytes()),
             Color::White => w.write_all("\u{1b}[37m".as_bytes()),
             Color::EightBit(x) => write!(w, "\u{1b}[38;5;{}m", x),
+            Color::Rgb(r, g, b) => write!(w, "\u{1b}[38;2;{};{};{}m", r, g, b),
         }
     }
 
@@ -94,6 +95,7 @@ impl Terminal {
             Color::Cyan => w.write_all("\u{1b}[46m".as_bytes()),
             Color::White => w.write_all("\u{1b}[47m".as_bytes()),
             Color::EightBit(x) => write!(w, "\u{1b}[48;5;{}m", x),
+            Color::Rgb(r, g, b) => write!(w, "\u{1b}[48;2;{};{};{}m", r, g, b),
         }
     }
 
