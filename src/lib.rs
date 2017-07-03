@@ -116,6 +116,7 @@ impl Drop for TermFest {
     fn drop(&mut self) {
         // ignore errors in drop
         if let Ok(mut ttyout) = self.ttyout.lock() {
+            let _ = self.terminal.show_cursor(&mut *ttyout);
             let _ = self.terminal.exit_keypad(&mut *ttyout);
             let _ = self.terminal.exit_ca(&mut *ttyout);
             let _ = self.terminal.reset_attr(&mut *ttyout);
