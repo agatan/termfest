@@ -28,11 +28,11 @@ impl Editor {
     fn insert(&mut self, ch: char) {
         self.before_cursor.push_back(ch);
         let mut screen = self.termfest.lock();
-        screen.put_char(self.cursor, 0, Cell::new(ch));
+        screen.put_cell(self.cursor, 0, Cell::new(ch));
         self.cursor += ch.width().unwrap_or(1) as i32;
         let mut x = self.cursor;
         for &ch in self.after_cursor.iter() {
-            screen.put_char(x, 0, Cell::new(ch));
+            screen.put_cell(x, 0, Cell::new(ch));
             x += ch.width().unwrap_or(1) as i32;
         }
         screen.move_cursor(self.cursor, 0);
@@ -44,11 +44,11 @@ impl Editor {
             self.cursor -= ch.width().unwrap_or(1) as i32;
             let mut x = self.cursor;
             for &ch in self.after_cursor.iter() {
-                screen.put_char(x, 0, Cell::new(ch));
+                screen.put_cell(x, 0, Cell::new(ch));
                 x += ch.width().unwrap_or(1) as i32;
             }
-            screen.put_char(x, 0, Cell::new(' '));
-            screen.put_char(x + 1, 0, Cell::new(' '));
+            screen.put_cell(x, 0, Cell::new(' '));
+            screen.put_cell(x + 1, 0, Cell::new(' '));
             screen.move_cursor(self.cursor, 0);
         }
     }

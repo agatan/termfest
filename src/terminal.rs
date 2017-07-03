@@ -58,7 +58,7 @@ impl Terminal {
         self.write_if_exists(w, "cnorm")
     }
 
-    pub fn put_char<W: Write>(&self, mut w: W, ch: char) -> io::Result<()> {
+    pub fn put_cell<W: Write>(&self, mut w: W, ch: char) -> io::Result<()> {
         let mut buf = [0; 4];
         w.write_all(ch.encode_utf8(&mut buf).as_bytes())
     }
@@ -123,7 +123,7 @@ impl Terminal {
             Command::HideCursor => self.hide_cursor(w),
             Command::ShowCursor => self.show_cursor(w),
             Command::MoveCursor { x, y } => self.move_cursor(w, x, y),
-            Command::PutChar(ch) => self.put_char(w, ch),
+            Command::PutChar(ch) => self.put_cell(w, ch),
             Command::ResetAttr => self.reset_attr(w),
             Command::Fg(c) => self.fg(w, c),
             Command::Bg(c) => self.bg(w, c),

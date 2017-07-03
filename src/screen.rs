@@ -132,12 +132,12 @@ impl Screen {
         };
         for c in s.chars() {
             cell.ch = Some(c);
-            self.put_char(x, y, cell);
+            self.put_cell(x, y, cell);
             x += c.width().unwrap_or(1) as i32;
         }
     }
 
-    pub fn put_char(&mut self, x: i32, y: i32, cell: Cell) {
+    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) {
         if let Some(i) = self.index(x, y) {
             self.cells[i] = cell;
         }

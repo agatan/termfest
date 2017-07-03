@@ -11,7 +11,7 @@ fn main() {
         let mut screen = f.lock();
         match ev {
             Event::Char('q') | Event::Key(ESC) => break,
-            Event::Char(ch) => screen.put_char(cursor_x, cursor_y, Cell::new(ch)),
+            Event::Char(ch) => screen.put_cell(cursor_x, cursor_y, Cell::new(ch)),
             Event::Key(key) => {
                 match key {
                     ArrowUp | CtrlP => {
