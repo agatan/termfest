@@ -166,12 +166,12 @@ impl<'a> ScreenLock<'a> {
         self.screen.cursor.visible = true;
     }
 
-    pub fn print(&mut self, x: i32, y: i32, s: &str, attr: Attribute) -> usize {
+    pub fn print(&mut self, x: i32, y: i32, s: &str, attr: Attribute) {
         self.screen.print(x, y, s, attr)
     }
 
-    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) -> usize {
-        self.screen.put_cell(x, y, cell)
+    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) {
+        self.screen.put_cell(x, y, cell);
     }
 
     pub fn size(&self) -> (i32, i32) {
