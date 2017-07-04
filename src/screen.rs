@@ -133,7 +133,7 @@ impl Screen {
         for c in s.chars() {
             cell.ch = Some(c);
             self.put_cell(x, y, cell);
-            x += c.width().unwrap_or(1) as i32;
+            x += self.display_width(c) as i32;
         }
     }
 
@@ -176,7 +176,7 @@ impl Screen {
                     commands.push(Command::PutChar(ch));
                     last_x = x + 1;
                     last_y = y;
-                    if ch.width() == Some(2) {
+                    if self.display_width(ch) == 2 {
                         last_x += 1;
                         if let Some(right) = self.index(x + 1, y) {
                             self.cells[right] = Cell { ch: None, ..cell };
@@ -197,5 +197,9 @@ impl Screen {
                       });
         self.painted_cursor = self.cursor;
         commands
+    }
+
+    pub fn display_width(&self, ch: char) -> usize {
+        ch.width().unwrap_or(1)
     }
 }

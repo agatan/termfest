@@ -177,6 +177,10 @@ impl<'a> ScreenLock<'a> {
     pub fn size(&self) -> (i32, i32) {
         terminal::size(self.ttyout_fd)
     }
+
+    pub fn display_width(&self, ch: char) -> usize {
+        self.screen.display_width(ch)
+    }
 }
 
 impl<'a> Drop for ScreenLock<'a> {
