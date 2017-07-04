@@ -125,21 +125,26 @@ impl Screen {
         }
     }
 
-    pub fn print(&mut self, mut x: i32, y: i32, s: &str, attr: Attribute) {
+    pub fn print(&mut self, mut x: i32, y: i32, s: &str, attr: Attribute) -> usize {
         let mut cell = Cell {
             attribute: attr,
             ..Cell::default()
         };
+        let mut w = 0;
         for c in s.chars() {
             cell.ch = Some(c);
-            self.put_cell(x, y, cell);
+            w += self.put_cell(x, y, cell);
             x += c.width().unwrap_or(1) as i32;
         }
+        w
     }
 
-    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) {
+    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) -> usize {
         if let Some(i) = self.index(x, y) {
             self.cells[i] = cell;
+            cell.ch.and_then(|ch| ch.width()).unwrap_or(1)
+        } else {
+            0
         }
     }
 
