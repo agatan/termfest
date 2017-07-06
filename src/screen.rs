@@ -193,4 +193,8 @@ impl Screen {
         self.painted_cursor = self.cursor;
         commands
     }
+
+    pub fn size(&self) -> (i32, i32) {
+        (self.width, self.height)
+    }
 }

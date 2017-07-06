@@ -98,15 +98,10 @@ impl TermFest {
         Ok((fest, rx))
     }
 
-    pub fn size(&self) -> (i32, i32) {
-        terminal::size(self.ttyout_fd)
-    }
-
     pub fn lock(&self) -> ScreenLock {
         ScreenLock {
             flushed: false,
             screen: self.screen.lock().unwrap(),
-            ttyout_fd: self.ttyout_fd,
             ttyout: &self.ttyout,
             terminal: &self.terminal,
         }
@@ -131,7 +126,6 @@ impl Drop for TermFest {
 pub struct ScreenLock<'a> {
     flushed: bool,
     screen: MutexGuard<'a, Screen>,
-    ttyout_fd: RawFd,
     ttyout: &'a Mutex<BufWriter<File>>,
     terminal: &'a Terminal,
 }
@@ -173,7 +167,7 @@ impl<'a> ScreenLock<'a> {
     }
 
     pub fn size(&self) -> (i32, i32) {
-        terminal::size(self.ttyout_fd)
+        self.screen.size()
     }
 }
 
