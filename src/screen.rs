@@ -160,7 +160,7 @@ impl Screen {
                 if self.painted_cells[index] == self.cells[index] {
                     continue;
                 }
-                let cell = self.cells[index];
+                let cell = &mut self.cells[index];
                 if cell.attribute != last_attr {
                     commands.push(Command::ResetAttr);
                     commands.push(Command::Fg(cell.attribute.fg));
@@ -171,6 +171,9 @@ impl Screen {
                 if last_x != x || last_y != y {
                     commands.push(Command::MoveCursor { x: x, y: y });
                 }
+                if cell.ch.display_width() == 2 && x == self.width - 1 {
+                    cell.ch = ' ';
+                }
                 commands.push(Command::PutChar(cell.ch));
                 last_x = x + 1;
                 last_y = y;
@@ -178,7 +181,7 @@ impl Screen {
                     last_x += 1;
                     last_is_multiwidth = true;
                 }
-                self.painted_cells[index] = self.cells[index];
+                self.painted_cells[index] = *cell;
             }
         }
         if self.cursor.visible && !self.painted_cursor.visible {
