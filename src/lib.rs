@@ -19,6 +19,7 @@ use std::sync::{mpsc, Arc, Mutex, MutexGuard};
 use std::os::unix::io::{RawFd, AsRawFd};
 
 use signal_notify::{notify, Signal};
+use unicode_width::{UnicodeWidthStr, UnicodeWidthChar};
 
 pub mod keys;
 mod event;
@@ -177,10 +178,6 @@ impl<'a> ScreenLock<'a> {
     pub fn size(&self) -> (i32, i32) {
         terminal::size(self.ttyout_fd)
     }
-
-    pub fn display_width(&self, ch: char) -> usize {
-        self.screen.display_width(ch)
-    }
 }
 
 impl<'a> Drop for ScreenLock<'a> {
@@ -256,4 +253,20 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
         }
     });
     Ok(())
+}
+
+pub trait DisplayWidth {
+    fn display_width(&self) -> usize;
+}
+
+impl DisplayWidth for char {
+    fn display_width(&self) -> usize {
+        self.width().unwrap_or(1)
+    }
+}
+
+impl DisplayWidth for str {
+    fn display_width(&self) -> usize {
+        self.width()
+    }
 }

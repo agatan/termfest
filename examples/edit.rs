@@ -3,7 +3,7 @@ extern crate unicode_width;
 
 use std::collections::VecDeque;
 
-use termfest::{TermFest, Event, Cell};
+use termfest::{TermFest, Event, Cell, DisplayWidth};
 use termfest::keys::*;
 
 struct Editor {
@@ -27,11 +27,11 @@ impl Editor {
         self.before_cursor.push_back(ch);
         let mut screen = self.termfest.lock();
         screen.put_cell(self.cursor, 0, Cell::new(ch));
-        self.cursor += screen.display_width(ch) as i32;
+        self.cursor += ch.display_width() as i32;
         let mut x = self.cursor;
         for &ch in self.after_cursor.iter() {
             screen.put_cell(x, 0, Cell::new(ch));
-            x += screen.display_width(ch) as i32;
+            x += ch.display_width() as i32;
         }
         screen.move_cursor(self.cursor, 0);
     }
@@ -39,11 +39,11 @@ impl Editor {
     fn backspace(&mut self) {
         if let Some(ch) = self.before_cursor.pop_back() {
             let mut screen = self.termfest.lock();
-            self.cursor -= screen.display_width(ch) as i32;
+            self.cursor -= ch.display_width() as i32;
             let mut x = self.cursor;
             for &ch in self.after_cursor.iter() {
                 screen.put_cell(x, 0, Cell::new(ch));
-                x += screen.display_width(ch) as i32;
+                x += ch.display_width() as i32;
             }
             screen.put_cell(x, 0, Cell::new(' '));
             screen.put_cell(x + 1, 0, Cell::new(' '));
@@ -55,7 +55,7 @@ impl Editor {
         if let Some(ch) = self.before_cursor.pop_back() {
             self.after_cursor.push_front(ch);
             let mut screen = self.termfest.lock();
-            self.cursor -= screen.display_width(ch) as i32;
+            self.cursor -= ch.display_width() as i32;
             screen.move_cursor(self.cursor, 0);
         }
     }
@@ -64,7 +64,7 @@ impl Editor {
         if let Some(ch) = self.after_cursor.pop_front() {
             self.before_cursor.push_back(ch);
             let mut screen = self.termfest.lock();
-            self.cursor += screen.display_width(ch) as i32;
+            self.cursor += ch.display_width() as i32;
             screen.move_cursor(self.cursor, 0);
         }
     }
