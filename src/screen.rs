@@ -163,15 +163,9 @@ impl Screen {
                 let cell = self.cells[index];
                 if cell.attribute != last_attr {
                     commands.push(Command::ResetAttr);
-                    if last_attr.fg != cell.attribute.fg {
-                        commands.push(Command::Fg(cell.attribute.fg));
-                    }
-                    if last_attr.bg != cell.attribute.bg {
-                        commands.push(Command::Bg(cell.attribute.bg));
-                    }
-                    if last_attr.effect != cell.attribute.effect {
-                        commands.push(Command::Effect(cell.attribute.effect));
-                    }
+                    commands.push(Command::Fg(cell.attribute.fg));
+                    commands.push(Command::Bg(cell.attribute.bg));
+                    commands.push(Command::Effect(cell.attribute.effect));
                     last_attr = cell.attribute;
                 }
                 if last_x != x || last_y != y {

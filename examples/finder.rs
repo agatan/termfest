@@ -96,7 +96,6 @@ impl Finder {
     }
 
     fn show_candidates(&self, screen: &mut ScreenLock) {
-        let (width, height) = screen.size();
         for (i, m) in self.matches.iter().enumerate() {
             let attr = if i == self.select {
                 Attribute {
@@ -111,7 +110,22 @@ impl Finder {
             } else {
                 screen.print(0, i as i32 + 1, "  ", attr);
             }
-            screen.print(2, i as i32 + 1, m.as_str(), attr);
+            let (before, mat, after) = match m.find(&self.needle) {
+                None => ("", m.as_str(), ""),
+                Some(i) => (&m[..i], &m[i..i + self.needle.len()], &m[i + self.needle.len()..]),
+            };
+            screen.print(2, i as i32 + 1, before, attr);
+            screen.print(2 + before.display_width() as i32,
+                         i as i32 + 1,
+                         mat,
+                         Attribute {
+                             fg: Color::Red,
+                             ..attr
+                         });
+            screen.print(2 + before.display_width() as i32 + mat.display_width() as i32,
+                         i as i32 + 1,
+                         after,
+                         attr);
         }
     }
 
