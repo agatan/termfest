@@ -1,7 +1,7 @@
 extern crate termfest;
 
 use termfest::{Event, TermFest};
-use termfest::keys::*;
+use termfest::key::*;
 use termfest::attr::*;
 
 fn main() {

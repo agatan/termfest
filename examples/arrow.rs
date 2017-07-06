@@ -1,7 +1,7 @@
 extern crate termfest;
 
 use termfest::{Event, TermFest, Cell};
-use termfest::keys::*;
+use termfest::key::*;
 
 fn main() {
     let (f, rx) = TermFest::hold().unwrap();

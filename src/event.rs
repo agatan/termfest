@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use num::FromPrimitive;
 
 use terminal::Terminal;
-use keys::Key;
+use key::Key;
 
 #[derive(Debug, Clone)]
 pub enum Event {

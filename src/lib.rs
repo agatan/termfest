@@ -21,7 +21,7 @@ use std::os::unix::io::{RawFd, AsRawFd};
 use signal_notify::{notify, Signal};
 use unicode_width::{UnicodeWidthStr, UnicodeWidthChar};
 
-pub mod keys;
+pub mod key;
 mod event;
 mod screen;
 use screen::Screen;
@@ -29,7 +29,7 @@ mod terminal;
 use terminal::Terminal;
 pub mod attr;
 
-pub use keys::Key;
+pub use key::Key;
 pub use event::Event;
 pub use screen::Cell;
 pub use attr::{Attribute, Color, Effect};

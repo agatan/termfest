@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use term::terminfo::TermInfo;
 use libc;
 
-use keys::Key;
+use key::Key;
 use attr::{Color, Effect, BOLD, DIM, UNDERLINE, BLINK, REVERSE};
 
 #[derive(Debug)]

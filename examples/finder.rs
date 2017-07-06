@@ -5,7 +5,7 @@ use std::io::BufRead;
 use std::rc::Rc;
 
 use termfest::{TermFest, Event, ScreenLock, DisplayWidth, Cell};
-use termfest::keys::*;
+use termfest::key::*;
 use termfest::attr::*;
 
 #[derive(Default)]

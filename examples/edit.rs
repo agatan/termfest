@@ -1,10 +1,8 @@
 extern crate termfest;
 extern crate unicode_width;
 
-use std::collections::VecDeque;
-
-use termfest::{TermFest, Event, Cell, DisplayWidth, Attribute};
-use termfest::keys::*;
+use termfest::{TermFest, Event, DisplayWidth, Attribute};
+use termfest::key::*;
 
 struct Editor {
     contents: String,
