@@ -11,7 +11,7 @@ pub enum Event {
     Key(Key),
     /// `Char` is an event that notify the input byte sequence is a non-special character.
     Char(char),
-    Resize { width: i32, height: i32 },
+    Resize { width: usize, height: usize },
 }
 
 impl Event {

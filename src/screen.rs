@@ -45,15 +45,15 @@ impl Cell {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Cursor {
-    pub x: i32,
-    pub y: i32,
+    pub x: usize,
+    pub y: usize,
     pub visible: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct Screen {
-    pub width: i32,
-    pub height: i32,
+    pub width: usize,
+    pub height: usize,
     // length of `cells` is `width * height`
     // accessing (x, y) is equal to `cells[x + y * width]`
     pub cells: Vec<Cell>,
@@ -64,18 +64,18 @@ pub struct Screen {
 }
 
 impl Screen {
-    pub fn new(width: i32, height: i32) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Screen {
             width: width,
             height: height,
-            cells: vec![Cell::default(); (width * height) as usize],
+            cells: vec![Cell::default(); (width * height) ],
             cursor: Cursor {
                 x: 0,
                 y: 0,
                 visible: true,
             },
 
-            painted_cells: vec![Cell::default(); (width * height) as usize],
+            painted_cells: vec![Cell::default(); (width * height) ],
             painted_cursor: Cursor {
                 x: 0,
                 y: 0,
@@ -84,22 +84,22 @@ impl Screen {
         }
     }
 
-    fn copy_cells(&self, original: &[Cell], width: i32, height: i32) -> Vec<Cell> {
-        let mut new_cells = vec![Cell::default(); (width * height) as usize];
+    fn copy_cells(&self, original: &[Cell], width: usize, height: usize) -> Vec<Cell> {
+        let mut new_cells = vec![Cell::default(); (width * height) ];
         use std::cmp;
         let min_height = cmp::min(height, self.height);
         let min_width = cmp::min(width, self.width);
         for y in 0..min_height {
-            let orig_start = (y * self.width) as usize;
-            let orig_end = min_width as usize + orig_start;
-            let start = (y * width) as usize;
-            let end = min_width as usize + start;
+            let orig_start = y * self.width;
+            let orig_end = min_width + orig_start;
+            let start = y * width;
+            let end = min_width + start;
             (&mut new_cells[start..end]).copy_from_slice(&original[orig_start..orig_end]);
         }
         new_cells
     }
 
-    pub fn resize(&mut self, width: i32, height: i32) {
+    pub fn resize(&mut self, width: usize, height: usize) {
         self.cells = self.copy_cells(&self.cells, width, height);
         self.painted_cells = self.copy_cells(&self.painted_cells, width, height);
         self.width = width;
@@ -112,15 +112,15 @@ impl Screen {
         }
     }
 
-    fn index(&self, x: i32, y: i32) -> Option<usize> {
-        if x < 0 || self.width <= x || y < 0 || self.height <= y {
+    fn index(&self, x: usize, y: usize) -> Option<usize> {
+        if self.width <= x || self.height <= y {
             None
         } else {
-            Some((x + y * self.width) as usize)
+            Some((x + y * self.width))
         }
     }
 
-    pub fn print(&mut self, mut x: i32, y: i32, s: &str, attr: Attribute) {
+    pub fn print(&mut self, mut x: usize, y: usize, s: &str, attr: Attribute) {
         let mut cell = Cell {
             attribute: attr,
             ..Cell::default()
@@ -128,11 +128,11 @@ impl Screen {
         for c in s.chars() {
             cell.ch = c;
             self.put_cell(x, y, cell);
-            x += c.display_width() as i32;
+            x += c.display_width();
         }
     }
 
-    pub fn put_cell(&mut self, x: i32, y: i32, cell: Cell) {
+    pub fn put_cell(&mut self, x: usize, y: usize, cell: Cell) {
         if let Some(i) = self.index(x, y) {
             self.cells[i] = cell;
         }
@@ -140,8 +140,8 @@ impl Screen {
 
     pub fn flush_commands(&mut self) -> Vec<Command> {
         let mut commands = Vec::new();
-        let mut last_x = -1;
-        let mut last_y = -1;
+        let mut last_x = !0;
+        let mut last_y = !0;
         let mut last_attr = Attribute::default();
         commands.push(Command::ResetAttr);
         for y in 0..self.height {
@@ -194,7 +194,7 @@ impl Screen {
         commands
     }
 
-    pub fn size(&self) -> (i32, i32) {
+    pub fn size(&self) -> (usize, usize) {
         (self.width, self.height)
     }
 }

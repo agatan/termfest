@@ -86,13 +86,13 @@ impl Finder {
 
     fn show_needle(&self, screen: &mut ScreenLock) {
         screen.print(0, 0, &self.needle, Attribute::default());
-        let w = self.needle.display_width() as i32;
+        let w = self.needle.display_width();
         let (width, _) = screen.size();
         for i in w..width {
             screen.put_cell(i, 0, Cell::new(' '));
         }
-        let x = self.needle[..self.cursor].display_width() as i32;
-        screen.move_cursor(x as i32, 0);
+        let x = self.needle[..self.cursor].display_width();
+        screen.move_cursor(x, 0);
     }
 
     fn show_candidates(&self, screen: &mut ScreenLock) {
@@ -106,24 +106,24 @@ impl Finder {
                 Attribute::default()
             };
             if i == self.select {
-                screen.print(0, i as i32 + 1, "> ", attr);
+                screen.print(0, i + 1, "> ", attr);
             } else {
-                screen.print(0, i as i32 + 1, "  ", attr);
+                screen.print(0, i + 1, "  ", attr);
             }
             let (before, mat, after) = match m.find(&self.needle) {
                 None => ("", m.as_str(), ""),
                 Some(i) => (&m[..i], &m[i..i + self.needle.len()], &m[i + self.needle.len()..]),
             };
-            screen.print(2, i as i32 + 1, before, attr);
-            screen.print(2 + before.display_width() as i32,
-                         i as i32 + 1,
+            screen.print(2, i + 1, before, attr);
+            screen.print(2 + before.display_width(),
+                         i + 1,
                          mat,
                          Attribute {
                              fg: Color::Red,
                              ..attr
                          });
-            screen.print(2 + before.display_width() as i32 + mat.display_width() as i32,
-                         i as i32 + 1,
+            screen.print(2 + before.display_width() + mat.display_width(),
+                         i + 1,
                          after,
                          attr);
         }

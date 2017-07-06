@@ -45,7 +45,7 @@ impl Terminal {
         self.write_if_exists(w, "clear")
     }
 
-    pub fn move_cursor<W: Write>(&self, mut w: W, x: i32, y: i32) -> io::Result<()> {
+    pub fn move_cursor<W: Write>(&self, mut w: W, x: usize, y: usize) -> io::Result<()> {
         w.write(&[0x1b])?;
         write!(w, "[{};{}H", y + 1, x + 1)
     }
@@ -146,7 +146,7 @@ impl Terminal {
 pub enum Command {
     HideCursor,
     ShowCursor,
-    MoveCursor { x: i32, y: i32 },
+    MoveCursor { x: usize, y: usize },
     PutChar(char),
     ResetAttr,
     Fg(Color),
@@ -154,7 +154,7 @@ pub enum Command {
     Effect(Effect),
 }
 
-pub fn size(fd: libc::c_int) -> (i32, i32) {
+pub fn size(fd: libc::c_int) -> (usize, usize) {
     unsafe {
         let mut wsz: libc::winsize = ::std::mem::uninitialized();
         let n = libc::ioctl(fd, libc::TIOCGWINSZ, &mut wsz as *mut _);
@@ -162,6 +162,6 @@ pub fn size(fd: libc::c_int) -> (i32, i32) {
             libc::perror("get window size".as_ptr() as *const _);
             panic!();
         }
-        (wsz.ws_col as i32, wsz.ws_row as i32)
+        (wsz.ws_col as usize, wsz.ws_row as usize)
     }
 }

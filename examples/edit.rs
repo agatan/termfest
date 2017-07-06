@@ -45,7 +45,7 @@ impl Editor {
         let mut screen = fest.lock();
         screen.clear();
         screen.print(0, 0, &self.contents, Attribute::default());
-        let cursor_x = self.contents[..self.cursor].display_width() as i32;
+        let cursor_x = self.contents[..self.cursor].display_width();
         screen.move_cursor(cursor_x, 0);
     }
 }
