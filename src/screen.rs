@@ -6,15 +6,14 @@ use super::DisplayWidth;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
-    /// None if the left side character is multi-width character like 'あ'
-    ch: Option<char>,
+    ch: char,
     attribute: Attribute,
 }
 
 impl Default for Cell {
     fn default() -> Self {
         Cell {
-            ch: Some(' '),
+            ch: ' ',
             attribute: Attribute::default(),
         }
     }
@@ -23,7 +22,7 @@ impl Default for Cell {
 impl Cell {
     pub fn new(ch: char) -> Self {
         Cell {
-            ch: Some(ch),
+            ch: ch,
             attribute: Attribute::default(),
         }
     }
@@ -108,11 +107,8 @@ impl Screen {
     }
 
     pub fn clear(&mut self) {
-        for cell in self.painted_cells.iter_mut() {
-            cell.ch = Some(' ');
-        }
         for cell in self.cells.iter_mut() {
-            cell.ch = Some(' ');
+            cell.ch = ' ';
         }
     }
 
@@ -130,7 +126,7 @@ impl Screen {
             ..Cell::default()
         };
         for c in s.chars() {
-            cell.ch = Some(c);
+            cell.ch = c;
             self.put_cell(x, y, cell);
             x += c.display_width() as i32;
         }
@@ -149,8 +145,18 @@ impl Screen {
         let mut last_attr = Attribute::default();
         commands.push(Command::ResetAttr);
         for y in 0..self.height {
+            let mut last_is_multiwidth = false;
             for x in 0..self.width {
                 let index = self.index(x, y).unwrap();
+                if last_is_multiwidth {
+                    last_is_multiwidth = false;
+                    let leftcell = self.cells[index - 1];
+                    self.painted_cells[index] = Cell {
+                        ch: ' ',
+                        ..leftcell
+                    };
+                    continue;
+                }
                 if self.painted_cells[index] == self.cells[index] {
                     continue;
                 }
@@ -168,19 +174,15 @@ impl Screen {
                     }
                     last_attr = cell.attribute;
                 }
-                if let Some(ch) = cell.ch {
-                    if last_x != x || last_y != y {
-                        commands.push(Command::MoveCursor { x: x, y: y });
-                    }
-                    commands.push(Command::PutChar(ch));
-                    last_x = x + 1;
-                    last_y = y;
-                    if ch.display_width() == 2 {
-                        last_x += 1;
-                        if let Some(right) = self.index(x + 1, y) {
-                            self.cells[right] = Cell { ch: None, ..cell };
-                        }
-                    }
+                if last_x != x || last_y != y {
+                    commands.push(Command::MoveCursor { x: x, y: y });
+                }
+                commands.push(Command::PutChar(cell.ch));
+                last_x = x + 1;
+                last_y = y;
+                if cell.ch.display_width() == 2 {
+                    last_x += 1;
+                    last_is_multiwidth = true;
                 }
                 self.painted_cells[index] = self.cells[index];
             }

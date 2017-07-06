@@ -149,9 +149,6 @@ impl<'a> ScreenLock<'a> {
 
     pub fn clear(&mut self) {
         self.screen.clear();
-        self.terminal
-            .clear(&mut *self.ttyout.lock().unwrap())
-            .unwrap()
     }
 
     pub fn move_cursor(&mut self, x: i32, y: i32) {
