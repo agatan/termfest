@@ -36,3 +36,5 @@ pub enum Key {
 }
 
 pub use Key::*;
+
+pub const ENTER: Key = Key::CtrlM;
