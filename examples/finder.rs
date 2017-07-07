@@ -151,6 +151,9 @@ fn main() {
             Event::Char(ch) => {
                 finder.insert(ch);
             }
+            Event::Key(Space) => {
+                finder.insert(' ');
+            }
             Event::Key(ESC) => break,
             Event::Key(Backspace) => {
                 finder.backspace();
