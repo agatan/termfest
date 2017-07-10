@@ -98,7 +98,7 @@ impl Termfest {
         Ok((fest, rx))
     }
 
-    pub fn lock(&self) -> ScreenLock {
+    pub fn lock_screen(&self) -> ScreenLock {
         ScreenLock {
             flushed: false,
             screen: self.screen.lock().unwrap(),

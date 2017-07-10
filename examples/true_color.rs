@@ -6,7 +6,7 @@ use termfest::{Termfest, Cell};
 fn main() {
     let (fest, rx) = Termfest::hold().unwrap();
 
-    let mut screen = fest.lock();
+    let mut screen = fest.lock_screen();
     screen.hide_cursor();
     let (w, h) = screen.size();
     for i in 0..h {

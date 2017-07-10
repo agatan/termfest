@@ -138,7 +138,7 @@ impl Finder {
     }
 
     fn show(&self, fest: &Termfest) {
-        let mut screen = fest.lock();
+        let mut screen = fest.lock_screen();
         screen.clear();
         self.show_needle(&mut screen);
         self.show_candidates(&mut screen);

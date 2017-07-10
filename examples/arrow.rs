@@ -8,10 +8,10 @@ use std::cmp;
 fn main() {
     let (f, rx) = Termfest::hold().unwrap();
     let (mut cursor_x, mut cursor_y) = (0, 0);
-    let (mut width, mut height) = f.lock().size();
+    let (mut width, mut height) = f.lock_screen().size();
 
     for ev in rx.iter() {
-        let mut screen = f.lock();
+        let mut screen = f.lock_screen();
         match ev {
             Event::Char('q') | Event::Key(ESC) => break,
             Event::Char(ch) => screen.put_cell(cursor_x, cursor_y, Cell::new(ch)),

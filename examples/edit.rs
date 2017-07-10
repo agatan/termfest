@@ -42,7 +42,7 @@ impl Editor {
     }
 
     fn show(&self, fest: &Termfest) {
-        let mut screen = fest.lock();
+        let mut screen = fest.lock_screen();
         screen.clear();
         screen.print(0, 0, &self.contents, Attribute::default());
         let cursor_x = self.contents[..self.cursor].display_width();

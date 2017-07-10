@@ -7,7 +7,7 @@ use termfest::attr::*;
 fn main() {
     let (fest, rx) = Termfest::hold().unwrap();
 
-    let mut screen = fest.lock();
+    let mut screen = fest.lock_screen();
     let colors = [
         Color::Black,
         Color::Red,
