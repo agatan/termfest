@@ -5,6 +5,8 @@ use num::FromPrimitive;
 use terminal::Terminal;
 use key::Key;
 
+/// `Event` is an event of termfest, that contains special key pressed, character input, and window
+/// resize.
 #[derive(Debug, Clone)]
 pub enum Event {
     /// `Key` is an event that notify a special key (e.g. ctrl-A, Space, Enter) is pressed.

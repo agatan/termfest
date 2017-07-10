@@ -1,5 +1,14 @@
+//! This module provides rendering attributes like color or bold.
+
 use std::default::Default;
 
+/// `Attribute` is a rendering attribute that contains fg color, bg color and text effect.
+///
+/// ```
+/// use termfest::attr::{Attribute, Color, BOLD};
+///
+/// Attribute { fg: Color::Red, effect: BOLD, ..Attribute::default() };
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Attribute {
     pub fg: Color,

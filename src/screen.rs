@@ -4,6 +4,8 @@ use terminal::Command;
 use attr::{Color, Attribute, Effect};
 use super::DisplayWidth;
 
+/// `Cell` is a cell of the terminal.
+/// It has a display character and an attribute (fg and bg color, effects).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Cell {
     ch: char,

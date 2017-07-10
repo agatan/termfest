@@ -77,6 +77,9 @@ pub use event::Event;
 pub use screen::Cell;
 pub use attr::{Attribute, Color, Effect};
 
+/// `Termfest` holds termfest states.
+/// It is created by `Termfest::hold`.
+/// When it is dropped, termfest finalizes and restores every terminal states.
 pub struct Termfest {
     ttyout_fd: RawFd,
     ttyout: Mutex<BufWriter<File>>,
@@ -89,6 +92,15 @@ pub struct Termfest {
 }
 
 impl Termfest {
+    /// `hold` initialize terminal state and termfest state.
+    /// If succeeded, it returns a tuple of `Termfest` object and `Receiver<Event>`.
+    /// When the returned `Termfest` object is dropped, the terminal state will be restored.
+    ///
+    /// ```
+    /// use termfest::Termfest;
+    /// let (fest, events) = Termfest::hold().unwrap();
+    /// // do something widht fest and events.
+    /// ```
     pub fn hold() -> Result<(Termfest, mpsc::Receiver<Event>), io::Error> {
         let mut ttyout = OpenOptions::new()
             .write(true)
@@ -141,6 +153,8 @@ impl Termfest {
         Ok((fest, rx))
     }
 
+    /// acquire the lock of screen, and returns `ScreenLock`.
+    /// It will block if the lock is already acquired.
     pub fn lock_screen(&self) -> ScreenLock {
         ScreenLock {
             flushed: false,
@@ -166,6 +180,9 @@ impl Drop for Termfest {
     }
 }
 
+/// `ScreenLock` is a locked screen buffer, created by `Termfest::lock_screen`.
+/// When it is dropped, the buffered state will be flushed to the terminal.
+/// All rendering manipulation is implemented in `ScreenLock`.
 pub struct ScreenLock<'a> {
     flushed: bool,
     screen: MutexGuard<'a, Screen>,
@@ -174,6 +191,8 @@ pub struct ScreenLock<'a> {
 }
 
 impl<'a> ScreenLock<'a> {
+    /// flushes the internal buffer states to the terminal.
+    /// Even if this function is not called, the buffer will be flushed when `self` is dropped.
     pub fn flush(&mut self) -> io::Result<()> {
         let mut ttyout = self.ttyout.lock().unwrap();
         for command in self.screen.flush_commands() {
@@ -184,6 +203,8 @@ impl<'a> ScreenLock<'a> {
         Ok(())
     }
 
+    /// clear the internal buffer states.
+    /// If clear and flush is called, the terminal will be cleared (nothing will be rendered).
     pub fn clear(&mut self) {
         self.screen.clear();
     }
@@ -201,6 +222,8 @@ impl<'a> ScreenLock<'a> {
         self.screen.cursor.visible = true;
     }
 
+    /// print string with the given attribute.
+    /// It is equal to `put_cell` calls with each character.
     pub fn print(&mut self, x: usize, y: usize, s: &str, attr: Attribute) {
         self.screen.print(x, y, s, attr)
     }
@@ -209,6 +232,7 @@ impl<'a> ScreenLock<'a> {
         self.screen.put_cell(x, y, cell);
     }
 
+    /// returns the width and height of the terminal.
     pub fn size(&self) -> (usize, usize) {
         self.screen.size()
     }
@@ -302,6 +326,17 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
     Ok(())
 }
 
+/// `DisplayWidth` provides a way to determine display width of characters or strings.
+///
+/// ```
+/// use termfest::DisplayWidth;
+///
+/// assert_eq!('あ'.display_width(), 2);
+/// assert_eq!('a'.display_width(), 1);
+///
+/// assert_eq!("abc".display_width(), 3);
+/// assert_eq!("あいう".display_width(), 6);
+/// ```
 pub trait DisplayWidth {
     fn display_width(&self) -> usize;
 }

@@ -1,3 +1,5 @@
+//! This module defines a variant of special keys and their aliases.
+
 #[derive(Debug, Clone, Copy, FromPrimitive, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Key {
     CtrlA = 0x01,
@@ -37,4 +39,5 @@ pub enum Key {
 
 pub use Key::*;
 
+/// An alias of `Key::CtrlM`
 pub const ENTER: Key = Key::CtrlM;
