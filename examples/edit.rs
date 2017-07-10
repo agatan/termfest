@@ -1,8 +1,9 @@
 extern crate termfest;
 extern crate unicode_width;
 
-use termfest::{Termfest, Event, DisplayWidth, Attribute};
+use termfest::{Termfest, Event, DisplayWidth};
 use termfest::key::*;
+use termfest::attr::Attribute;
 
 struct Editor {
     contents: String,

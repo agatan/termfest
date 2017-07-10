@@ -72,10 +72,10 @@ mod terminal;
 use terminal::Terminal;
 pub mod attr;
 
-pub use key::Key;
+use key::Key;
 pub use event::Event;
 pub use screen::Cell;
-pub use attr::{Attribute, Color, Effect};
+use attr::Attribute;
 
 /// `Termfest` holds termfest states.
 /// It is created by `Termfest::hold`.
