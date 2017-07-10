@@ -72,20 +72,20 @@ impl Termfest {
             let tx = tx.clone();
             let sigwinch = notify(&[Signal::WINCH]);
             ::std::thread::spawn(move || loop {
-                                     if sigwinch.recv().is_err() {
-                                         break;
-                                     }
-                                     let (w, h) = terminal::size(ttyout_fd);
-                                     let mut screen = screen.lock().unwrap();
-                                     screen.resize(w, h);
-                                     if tx.send(Event::Resize {
-                                                    width: w,
-                                                    height: h,
-                                                })
-                                            .is_err() {
-                                         break;
-                                     }
-                                 });
+                if sigwinch.recv().is_err() {
+                    break;
+                }
+                let (w, h) = terminal::size(ttyout_fd);
+                let mut screen = screen.lock().unwrap();
+                screen.resize(w, h);
+                if tx.send(Event::Resize {
+                    width: w,
+                    height: h,
+                }).is_err()
+                {
+                    break;
+                }
+            });
         }
 
         let fest = Termfest {
@@ -189,8 +189,8 @@ fn setup_tios(fd: ::libc::c_int) -> io::Result<libc::termios> {
         }
         let mut tios = orig_tios;
         tios.c_iflag &= !(libc::IGNBRK | libc::BRKINT | libc::PARMRK | libc::ISTRIP |
-                          libc::INLCR | libc::IGNCR | libc::ICRNL |
-                          libc::IXON);
+                              libc::INLCR | libc::IGNCR | libc::ICRNL |
+                              libc::IXON);
         tios.c_lflag &= !(libc::ECHO | libc::ECHONL | libc::ICANON | libc::ISIG | libc::IEXTEN);
         tios.c_cflag &= !(libc::CSIZE | libc::PARENB);
         tios.c_cflag |= libc::CS8;
@@ -210,9 +210,22 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
         .create(false)
         .open("/dev/tty")?;
     unsafe {
-        libc::fcntl(ttyin.as_raw_fd(),
-                    libc::F_SETFL,
-                    libc::O_ASYNC | libc::O_NONBLOCK);
+        let r = libc::fcntl(
+            ttyin.as_raw_fd(),
+            libc::F_SETFL,
+            libc::O_ASYNC | libc::O_NONBLOCK,
+        );
+        if r < 0 {
+            return Err(io::Error::last_os_error());
+        }
+    }
+    if cfg!(linux) {
+        unsafe {
+            let r = libc::fcntl(ttyin.as_raw_fd(), libc::F_SETOWN, libc::getpid());
+            if r < 0 {
+                return Err(io::Error::last_os_error());
+            }
+        }
     }
     let sigio = notify(&[Signal::IO]);
     ::std::thread::spawn(move || {
@@ -225,7 +238,7 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
                     match e.kind() {
                         io::ErrorKind::WouldBlock |
                         io::ErrorKind::InvalidInput => continue,
-                        _ => panic!(e),
+                        _ => panic!("failed to read from tty: {}", e),
                     }
                 }
             };
