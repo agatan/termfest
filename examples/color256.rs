@@ -11,13 +11,15 @@ fn main() {
     for i in 0..16 {
         for j in 0..16 {
             let v = i * 16 + j;
-            screen.print(j * 3,
-                         i,
-                         &format!("{:02x}", v),
-                         Attribute {
-                             fg: Color::EightBit(v as u8),
-                             ..Attribute::default()
-                         });
+            screen.print(
+                j * 3,
+                i,
+                &format!("{:02x}", v),
+                Attribute {
+                    fg: Color::EightBit(v as u8),
+                    ..Attribute::default()
+                },
+            );
 
         }
     }

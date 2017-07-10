@@ -18,9 +18,11 @@ fn main() {
                 510 - 510 * j / w
             };
             let b = 255 - j * 255 / w;
-            screen.put_cell(j,
-                            i,
-                            Cell::new(' ').bg(Color::Rgb(r as u8, g as u8, b as u8)));
+            screen.put_cell(
+                j,
+                i,
+                Cell::new(' ').bg(Color::Rgb(r as u8, g as u8, b as u8)),
+            );
         }
     }
     screen.flush().unwrap();

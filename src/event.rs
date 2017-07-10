@@ -63,7 +63,9 @@ fn key_from_byte(byte: u8) -> Option<Key> {
     }
 }
 
-static ESCAPE_KEYS: [Key; 4] = [Key::ArrowUp,
-                                Key::ArrowDown,
-                                Key::ArrowLeft,
-                                Key::ArrowRight];
+static ESCAPE_KEYS: [Key; 4] = [
+    Key::ArrowUp,
+    Key::ArrowDown,
+    Key::ArrowLeft,
+    Key::ArrowRight,
+];

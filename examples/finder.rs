@@ -112,20 +112,28 @@ impl Finder {
             }
             let (before, mat, after) = match m.find(&self.needle) {
                 None => ("", m.as_str(), ""),
-                Some(i) => (&m[..i], &m[i..i + self.needle.len()], &m[i + self.needle.len()..]),
+                Some(i) => (
+                    &m[..i],
+                    &m[i..i + self.needle.len()],
+                    &m[i + self.needle.len()..],
+                ),
             };
             screen.print(2, i + 1, before, attr);
-            screen.print(2 + before.display_width(),
-                         i + 1,
-                         mat,
-                         Attribute {
-                             fg: Color::Red,
-                             ..attr
-                         });
-            screen.print(2 + before.display_width() + mat.display_width(),
-                         i + 1,
-                         after,
-                         attr);
+            screen.print(
+                2 + before.display_width(),
+                i + 1,
+                mat,
+                Attribute {
+                    fg: Color::Red,
+                    ..attr
+                },
+            );
+            screen.print(
+                2 + before.display_width() + mat.display_width(),
+                i + 1,
+                after,
+                attr,
+            );
         }
     }
 
