@@ -1,11 +1,11 @@
 extern crate termfest;
 
-use termfest::{Event, TermFest};
+use termfest::{Event, Termfest};
 use termfest::key::*;
 use termfest::attr::*;
 
 fn main() {
-    let (fest, rx) = TermFest::hold().unwrap();
+    let (fest, rx) = Termfest::hold().unwrap();
 
     let mut screen = fest.lock();
     let colors = [Color::Black,

@@ -4,7 +4,7 @@ extern crate termfest;
 use std::io::BufRead;
 use std::rc::Rc;
 
-use termfest::{TermFest, Event, ScreenLock, DisplayWidth, Cell};
+use termfest::{Termfest, Event, ScreenLock, DisplayWidth, Cell};
 use termfest::key::*;
 use termfest::attr::*;
 
@@ -129,7 +129,7 @@ impl Finder {
         }
     }
 
-    fn show(&self, fest: &TermFest) {
+    fn show(&self, fest: &Termfest) {
         let mut screen = fest.lock();
         screen.clear();
         self.show_needle(&mut screen);
@@ -141,7 +141,7 @@ fn main() {
     let stdin = ::std::io::stdin();
     let candidates = stdin.lock().lines().collect::<Result<_, _>>().unwrap();
     let mut finder = Finder::new(candidates);
-    let (fest, events) = TermFest::hold().unwrap();
+    let (fest, events) = Termfest::hold().unwrap();
     finder.show(&fest);
 
     let mut result = None;

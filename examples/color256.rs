@@ -1,10 +1,10 @@
 extern crate termfest;
 
 use termfest::attr::*;
-use termfest::TermFest;
+use termfest::Termfest;
 
 fn main() {
-    let (fest, rx) = TermFest::hold().unwrap();
+    let (fest, rx) = Termfest::hold().unwrap();
 
     let mut screen = fest.lock();
     screen.hide_cursor();

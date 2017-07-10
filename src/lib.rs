@@ -34,7 +34,7 @@ pub use event::Event;
 pub use screen::Cell;
 pub use attr::{Attribute, Color, Effect};
 
-pub struct TermFest {
+pub struct Termfest {
     ttyout_fd: RawFd,
     ttyout: Mutex<BufWriter<File>>,
     orig_tios: libc::termios,
@@ -45,8 +45,8 @@ pub struct TermFest {
     screen: Arc<Mutex<Screen>>,
 }
 
-impl TermFest {
-    pub fn hold() -> Result<(TermFest, mpsc::Receiver<Event>), io::Error> {
+impl Termfest {
+    pub fn hold() -> Result<(Termfest, mpsc::Receiver<Event>), io::Error> {
         let mut ttyout = OpenOptions::new()
             .write(true)
             .read(false)
@@ -88,7 +88,7 @@ impl TermFest {
                                  });
         }
 
-        let fest = TermFest {
+        let fest = Termfest {
             ttyout_fd: ttyout.as_raw_fd(),
             ttyout: Mutex::new(BufWriter::new(ttyout)),
             orig_tios: orig_tios,
@@ -108,7 +108,7 @@ impl TermFest {
     }
 }
 
-impl Drop for TermFest {
+impl Drop for Termfest {
     fn drop(&mut self) {
         // ignore errors in drop
         if let Ok(mut ttyout) = self.ttyout.lock() {

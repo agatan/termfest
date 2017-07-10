@@ -1,10 +1,10 @@
 extern crate termfest;
 
-use termfest::{Event, TermFest, Cell};
+use termfest::{Event, Termfest, Cell};
 use termfest::key::*;
 
 fn main() {
-    let (f, rx) = TermFest::hold().unwrap();
+    let (f, rx) = Termfest::hold().unwrap();
     let (mut cursor_x, mut cursor_y) = (0, 0);
 
     for ev in rx.iter() {

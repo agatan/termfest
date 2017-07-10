@@ -1,7 +1,7 @@
 extern crate termfest;
 extern crate unicode_width;
 
-use termfest::{TermFest, Event, DisplayWidth, Attribute};
+use termfest::{Termfest, Event, DisplayWidth, Attribute};
 use termfest::key::*;
 
 struct Editor {
@@ -41,7 +41,7 @@ impl Editor {
         }
     }
 
-    fn show(&self, fest: &TermFest) {
+    fn show(&self, fest: &Termfest) {
         let mut screen = fest.lock();
         screen.clear();
         screen.print(0, 0, &self.contents, Attribute::default());
@@ -51,7 +51,7 @@ impl Editor {
 }
 
 fn main() {
-    let (fest, rx) = TermFest::hold().unwrap();
+    let (fest, rx) = Termfest::hold().unwrap();
     let mut editor = Editor::new();
     editor.show(&fest);
 
