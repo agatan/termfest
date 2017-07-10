@@ -3,9 +3,12 @@ extern crate termfest;
 use termfest::{Event, Termfest, Cell};
 use termfest::key::*;
 
+use std::cmp;
+
 fn main() {
     let (f, rx) = Termfest::hold().unwrap();
     let (mut cursor_x, mut cursor_y) = (0, 0);
+    let (mut width, mut height) = f.lock().size();
 
     for ev in rx.iter() {
         let mut screen = f.lock();
@@ -15,25 +18,41 @@ fn main() {
             Event::Key(key) => {
                 match key {
                     ArrowUp | CtrlP => {
-                        cursor_y -= 1;
+                        if cursor_y > 0 {
+                            cursor_y -= 1;
+                        }
                         screen.move_cursor(cursor_x, cursor_y);
                     }
                     ArrowDown | CtrlN => {
-                        cursor_y += 1;
+                        if cursor_y < height - 1 {
+                            cursor_y += 1;
+                        }
                         screen.move_cursor(cursor_x, cursor_y);
                     }
                     ArrowLeft | CtrlB => {
-                        cursor_x -= 1;
+                        if cursor_x > 0 {
+                            cursor_x -= 1;
+                        }
                         screen.move_cursor(cursor_x, cursor_y);
                     }
                     ArrowRight | CtrlF => {
-                        cursor_x += 1;
+                        if cursor_x < width - 1 {
+                            cursor_x += 1;
+                        }
                         screen.move_cursor(cursor_x, cursor_y);
                     }
                     _ => {}
                 }
             }
-            Event::Resize { .. } => {}
+            Event::Resize {
+                width: w,
+                height: h,
+            } => {
+                width = w;
+                height = h;
+                cursor_y = cmp::min(cursor_y, height - 1);
+                cursor_x = cmp::min(cursor_x, width - 1);
+            }
         }
     }
 }
