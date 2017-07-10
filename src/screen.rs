@@ -43,6 +43,11 @@ impl Cell {
         self.attribute.effect = effect;
         self
     }
+
+    pub fn attribute(mut self, attr: Attribute) -> Self {
+        self.attribute = attr;
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
