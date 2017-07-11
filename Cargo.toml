@@ -1,9 +1,9 @@
 [package]
 name = "termfest"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["agatan <agatan039@gmail.com>"]
 description = "A thread-safe TUI library"
-license-file = "LICENSE"
+license = "MIT"
 homepage = "https://github.com/agatan/termfest"
 repository = "https://github.com/agatan/termfest"
 keywords = ["terminal", "tui", "tty", "console"]
