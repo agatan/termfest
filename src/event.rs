@@ -114,3 +114,18 @@ static ESCAPE_KEYS: [Key; 4] = [
     Key::ArrowLeft,
     Key::ArrowRight,
 ];
+
+#[test]
+fn test_decode_char() {
+    let tests = [
+        ("abc".as_bytes(), Some('a')),
+        ("あいう".as_bytes(), Some('あ')),
+        (&[227, 129, 130], Some('あ')),
+        (&[227, 129], None),
+        (&[], None),
+    ];
+    for &(bytes, expected) in tests.iter() {
+        let expected = expected.map(|ch| (ch.len_utf8(), ch));
+        assert_eq!(decode_char(bytes), expected);
+    }
+}
