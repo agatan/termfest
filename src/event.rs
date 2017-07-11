@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use num::FromPrimitive;
 
@@ -34,13 +34,59 @@ pub fn parse(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> 
         return Ok(Some((1, Event::Key(key))));
     }
 
-    let ch = match buf.chars().next() {
+    let (len_utf8, ch) = match decode_char(buf) {
         None => return Ok(None),
-        Some(Ok(ch)) => ch,
-        Some(Err(io::CharsError::NotUtf8)) => return Ok(None),
-        Some(Err(io::CharsError::Other(err))) => return Err(err.into()),
+        Some(r) => r,
     };
-    Ok(Some((ch.len_utf8(), Event::Char(ch))))
+    Ok(Some((len_utf8, Event::Char(ch))))
+}
+
+// Copy from core/str/mod.rs in Rust.
+// Because `std::io::Chars` is unstable yet, we cannot use this in std library.
+// https://tools.ietf.org/html/rfc3629
+static UTF8_CHAR_WIDTH: [u8; 256] = [
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // 0x1F
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // 0x3F
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // 0x5F
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, // 0x7F
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0x9F
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, // 0xBF
+    0,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, // 0xDF
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3, // 0xEF
+    4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0, // 0xFF
+];
+
+#[inline]
+fn utf8_char_width(b: u8) -> usize {
+    return UTF8_CHAR_WIDTH[b as usize] as usize;
+}
+
+fn decode_char(buf: &[u8]) -> Option<(usize, char)> {
+    let first_byte = match buf.first() {
+        None => return None,
+        Some(&byte) => byte,
+    };
+    let width = utf8_char_width(first_byte);
+    if width == 1 {
+        return Some((width, first_byte as char));
+    }
+    if width == 0 {
+        return None;
+    }
+    if buf.len() < width {
+        return None;
+    }
+    match ::std::str::from_utf8(&buf[0..width]) {
+        Ok(s) => Some((width, s.chars().next().unwrap())),
+        Err(_) => None,
+    }
 }
 
 fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
