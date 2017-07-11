@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/agatan/termfest.svg?branch=master)](https://travis-ci.org/agatan/termfest)
 
-termfest is a thread-safe TUI library that provides simple APIs to render texts in terminal, heavily inspired by nsf/termbox-go.
+termfest is a thread-safe TUI library that provides simple APIs to render texts in terminal, heavily inspired by [nsf/termbox-go](https://github.com/nsf/termbox-go).
 Currently, termfest doesn't support windows because of my poor windows experience.
 
 termfest has internal buffer for efficient rendering.
