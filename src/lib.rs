@@ -41,8 +41,6 @@
 //! }
 //! ```
 
-#![feature(io)]
-
 extern crate term;
 extern crate libc;
 extern crate signal_notify;
