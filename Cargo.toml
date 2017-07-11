@@ -2,6 +2,11 @@
 name = "termfest"
 version = "0.1.0"
 authors = ["agatan <agatan039@gmail.com>"]
+description = "A thread-safe TUI library"
+license-file = "LICENSE"
+homepage = "https://github.com/agatan/termfest"
+repository = "https://github.com/agatan/termfest"
+keywords = ["terminal", "tui", "tty", "console"]
 
 [dependencies]
 term = "0.4"
