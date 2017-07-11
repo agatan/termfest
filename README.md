@@ -29,7 +29,7 @@ for ev in events.iter() {
         // write to the buffer.
         let attr = Attribute { fg: Color::Red, ..Attribute::default() };
         screen.print(0, y, "Hello, world!", attr);
-        // when the screen lock is freed, the buffer is flushed.
+        // when the screen lock is released, the buffer is flushed.
         // (you can flush the buffer with explicit `flush` call.)
     }
     match ev {
