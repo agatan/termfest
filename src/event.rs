@@ -1,5 +1,3 @@
-use std::io;
-
 use num::FromPrimitive;
 
 use terminal::Terminal;
@@ -16,29 +14,29 @@ pub enum Event {
     Resize { width: usize, height: usize },
 }
 
-/// Parse event from buffer. Returns `Err` if any IO error occurs.
-/// `Ok(None)` means 'no error occurs, but buffered bytes is not enough'.
-pub fn parse(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
+/// Parse event from buffer.
+/// `None` means 'buffered bytes are not enough'.
+pub fn parse(buf: &[u8], term: &Terminal) -> Option<(usize, Event)> {
     if buf.is_empty() {
-        return Ok(None);
+        return None;
     }
     if buf[0] == b'\x1b' {
         // escape sequence
-        if let Some(result) = parse_escape_sequence(buf, term)? {
-            return Ok(Some(result));
+        if let Some(result) = parse_escape_sequence(buf, term) {
+            return Some(result);
         }
     }
 
     if let Some(key) = key_from_byte(buf[0]) {
         // for single-byte keys like ctrl-A
-        return Ok(Some((1, Event::Key(key))));
+        return Some((1, Event::Key(key)));
     }
 
     let (len_utf8, ch) = match decode_char(buf) {
-        None => return Ok(None),
+        None => return None,
         Some(r) => r,
     };
-    Ok(Some((len_utf8, Event::Char(ch))))
+    Some((len_utf8, Event::Char(ch)))
 }
 
 // Copy from core/str/mod.rs in Rust.
@@ -89,18 +87,17 @@ fn decode_char(buf: &[u8]) -> Option<(usize, char)> {
     }
 }
 
-fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> io::Result<Option<(usize, Event)>> {
+fn parse_escape_sequence(buf: &[u8], term: &Terminal) -> Option<(usize, Event)> {
     debug_assert!(buf[0] == b'\x1b');
 
     for &key in ESCAPE_KEYS.iter() {
         if let Some(keybytes) = term.escaped_key_bytes(key) {
             if buf.starts_with(keybytes) {
-                return Ok(Some((keybytes.len(), Event::Key(key))));
+                return Some((keybytes.len(), Event::Key(key)));
             }
         }
     }
-
-    Ok(None)
+    None
 }
 
 fn key_from_byte(byte: u8) -> Option<Key> {

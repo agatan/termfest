@@ -309,7 +309,7 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
             };
             let mut from = 0;
             loop {
-                if let Some((read_byte, ev)) = event::parse(&buf[from..], &*term).unwrap() {
+                if let Some((read_byte, ev)) = event::parse(&buf[from..], &*term) {
                     from += read_byte;
                     if tx.send(ev).is_err() {
                         break;
