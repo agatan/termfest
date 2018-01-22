@@ -1,7 +1,7 @@
 [package]
 name = "termfest"
-version = "0.1.1"
-authors = ["agatan <agatan039@gmail.com>"]
+version = "0.1.2"
+authors = ["Naomichi Agata <agatan039@gmail.com>"]
 description = "A thread-safe TUI library"
 license = "MIT"
 homepage = "https://github.com/agatan/termfest"
