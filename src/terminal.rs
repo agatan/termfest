@@ -4,7 +4,7 @@ use term::terminfo::TermInfo;
 use libc;
 
 use key::Key;
-use attr::{Color, Effect, BOLD, DIM, UNDERLINE, BLINK, REVERSE};
+use attr::{Color, Effect};
 
 #[derive(Debug)]
 pub struct Terminal {
@@ -100,19 +100,19 @@ impl Terminal {
     }
 
     pub fn effect<W: Write>(&self, mut w: W, effect: Effect) -> io::Result<()> {
-        if effect.contains(BOLD) {
+        if effect.contains(Effect::BOLD) {
             self.write_if_exists(&mut w, "bold")?;
         }
-        if effect.contains(DIM) {
+        if effect.contains(Effect::DIM) {
             self.write_if_exists(&mut w, "dim")?;
         }
-        if effect.contains(UNDERLINE) {
+        if effect.contains(Effect::UNDERLINE) {
             self.write_if_exists(&mut w, "smul")?;
         }
-        if effect.contains(BLINK) {
+        if effect.contains(Effect::BLINK) {
             self.write_if_exists(&mut w, "blink")?;
         }
-        if effect.contains(REVERSE) {
+        if effect.contains(Effect::REVERSE) {
             self.write_if_exists(&mut w, "rev")?;
         }
         Ok(())
