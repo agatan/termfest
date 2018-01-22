@@ -11,7 +11,7 @@ keywords = ["terminal", "tui", "tty", "console"]
 [dependencies]
 term = "0.4"
 libc = "0.2"
-signal-notify = "0.1.2"
+signal-notify = "0.1.3"
 unicode-width = "0.1"
 num = "0.1"
 num-derive = "0.1"
