@@ -99,7 +99,7 @@ impl Finder {
         for (i, m) in self.matches.iter().enumerate() {
             let attr = if i == self.select {
                 Attribute {
-                    effect: BOLD,
+                    effect: Effect::BOLD,
                     ..Attribute::default()
                 }
             } else {
