@@ -41,15 +41,15 @@
 //! }
 //! ```
 
-extern crate term;
-extern crate libc;
-extern crate signal_notify;
-extern crate unicode_width;
-#[macro_use]
-extern crate num_derive;
-extern crate num;
 #[macro_use]
 extern crate bitflags;
+extern crate libc;
+extern crate num;
+#[macro_use]
+extern crate num_derive;
+extern crate signal_notify;
+extern crate term;
+extern crate unicode_width;
 
 use std::io::prelude::*;
 use std::io::{self, BufWriter};
@@ -57,10 +57,10 @@ use std::fs::{File, OpenOptions};
 use std::ops::Drop;
 use std::sync::{mpsc, Arc, Mutex, MutexGuard};
 
-use std::os::unix::io::{RawFd, AsRawFd};
+use std::os::unix::io::{AsRawFd, RawFd};
 
 use signal_notify::{notify, Signal};
-use unicode_width::{UnicodeWidthStr, UnicodeWidthChar};
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
 pub mod key;
 mod event;
@@ -253,9 +253,8 @@ fn setup_tios(fd: ::libc::c_int) -> io::Result<libc::termios> {
             return Err(io::Error::last_os_error());
         }
         let mut tios = orig_tios;
-        tios.c_iflag &= !(libc::IGNBRK | libc::BRKINT | libc::PARMRK | libc::ISTRIP |
-                              libc::INLCR | libc::IGNCR | libc::ICRNL |
-                              libc::IXON);
+        tios.c_iflag &= !(libc::IGNBRK | libc::BRKINT | libc::PARMRK | libc::ISTRIP | libc::INLCR
+            | libc::IGNCR | libc::ICRNL | libc::IXON);
         tios.c_lflag &= !(libc::ECHO | libc::ECHONL | libc::ICANON | libc::ISIG | libc::IEXTEN);
         tios.c_cflag &= !(libc::CSIZE | libc::PARENB);
         tios.c_cflag |= libc::CS8;
@@ -299,13 +298,10 @@ fn spawn_ttyin_reader(tx: mpsc::Sender<Event>, term: Arc<Terminal>) -> io::Resul
             let mut tmpbuf = [0; 64];
             match ttyin.read(&mut tmpbuf) {
                 Ok(n) => buf.extend(&tmpbuf[..n]),
-                Err(e) => {
-                    match e.kind() {
-                        io::ErrorKind::WouldBlock |
-                        io::ErrorKind::InvalidInput => continue,
-                        _ => panic!("failed to read from tty: {}", e),
-                    }
-                }
+                Err(e) => match e.kind() {
+                    io::ErrorKind::WouldBlock | io::ErrorKind::InvalidInput => continue,
+                    _ => panic!("failed to read from tty: {}", e),
+                },
             };
             let mut from = 0;
             loop {

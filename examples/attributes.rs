@@ -42,7 +42,13 @@ fn main() {
         i += 1;
     }
 
-    let effects = [Effect::BOLD, Effect::DIM, Effect::UNDERLINE, Effect::BLINK, Effect::REVERSE];
+    let effects = [
+        Effect::BOLD,
+        Effect::DIM,
+        Effect::UNDERLINE,
+        Effect::BLINK,
+        Effect::REVERSE,
+    ];
     for e in effects.iter() {
         screen.print(
             0,

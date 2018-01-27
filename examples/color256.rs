@@ -20,7 +20,6 @@ fn main() {
                     ..Attribute::default()
                 },
             );
-
         }
     }
     screen.flush().unwrap();

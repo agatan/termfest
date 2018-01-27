@@ -11,7 +11,10 @@ pub enum Event {
     Key(Key),
     /// `Char` is an event that notify the input byte sequence is a non-special character.
     Char(char),
-    Resize { width: usize, height: usize },
+    Resize {
+        width: usize,
+        height: usize,
+    },
 }
 
 /// Parse event from buffer.
