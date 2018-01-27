@@ -1,6 +1,6 @@
 [package]
 name = "termfest"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Naomichi Agata <agatan039@gmail.com>"]
 description = "A thread-safe TUI library"
 license = "MIT"
