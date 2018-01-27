@@ -1,7 +1,7 @@
 use std::default::Default;
 
 use terminal::Command;
-use attr::{Color, Attribute, Effect};
+use attr::{Attribute, Color, Effect};
 use super::DisplayWidth;
 
 /// `Cell` is a cell of the terminal.

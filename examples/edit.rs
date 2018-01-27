@@ -1,7 +1,7 @@
 extern crate termfest;
 extern crate unicode_width;
 
-use termfest::{Termfest, Event, DisplayWidth};
+use termfest::{DisplayWidth, Event, Termfest};
 use termfest::key::*;
 use termfest::attr::Attribute;
 
@@ -61,15 +61,13 @@ fn main() {
             Event::Char(ch) => {
                 editor.insert(ch);
             }
-            Event::Key(key) => {
-                match key {
-                    ArrowLeft | CtrlB => editor.move_left(),
-                    ArrowRight | CtrlF => editor.move_right(),
-                    CtrlH | Backspace => editor.backspace(),
-                    ESC => break,
-                    _ => {}
-                }
-            }
+            Event::Key(key) => match key {
+                ArrowLeft | CtrlB => editor.move_left(),
+                ArrowRight | CtrlF => editor.move_right(),
+                CtrlH | Backspace => editor.backspace(),
+                ESC => break,
+                _ => {}
+            },
             _ => {}
         }
         editor.show(&fest);

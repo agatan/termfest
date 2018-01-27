@@ -4,7 +4,7 @@ extern crate termfest;
 use std::io::BufRead;
 use std::rc::Rc;
 
-use termfest::{Termfest, Event, ScreenLock, DisplayWidth, Cell};
+use termfest::{Cell, DisplayWidth, Event, ScreenLock, Termfest};
 use termfest::key::*;
 use termfest::attr::*;
 
@@ -166,20 +166,16 @@ fn main() {
             Event::Key(Backspace) => {
                 finder.backspace();
             }
-            Event::Key(ArrowLeft) |
-            Event::Key(CtrlB) => {
+            Event::Key(ArrowLeft) | Event::Key(CtrlB) => {
                 finder.left();
             }
-            Event::Key(ArrowRight) |
-            Event::Key(CtrlF) => {
+            Event::Key(ArrowRight) | Event::Key(CtrlF) => {
                 finder.right();
             }
-            Event::Key(ArrowUp) |
-            Event::Key(CtrlP) => {
+            Event::Key(ArrowUp) | Event::Key(CtrlP) => {
                 finder.up();
             }
-            Event::Key(ArrowDown) |
-            Event::Key(CtrlN) => {
+            Event::Key(ArrowDown) | Event::Key(CtrlN) => {
                 finder.down();
             }
             Event::Key(ENTER) => {
