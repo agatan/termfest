@@ -75,14 +75,14 @@ impl Screen {
         Screen {
             width: width,
             height: height,
-            cells: vec![Cell::default(); (width * height)],
+            cells: vec![Cell::default(); width * height],
             cursor: Cursor {
                 x: 0,
                 y: 0,
                 visible: true,
             },
 
-            painted_cells: vec![Cell::default(); (width * height)],
+            painted_cells: vec![Cell::default(); width * height],
             painted_cursor: Cursor {
                 x: 0,
                 y: 0,
@@ -92,7 +92,7 @@ impl Screen {
     }
 
     fn copy_cells(&self, original: &[Cell], width: usize, height: usize) -> Vec<Cell> {
-        let mut new_cells = vec![Cell::default(); (width * height)];
+        let mut new_cells = vec![Cell::default(); width * height];
         use std::cmp;
         let min_height = cmp::min(height, self.height);
         let min_width = cmp::min(width, self.width);
@@ -123,7 +123,7 @@ impl Screen {
         if self.width <= x || self.height <= y {
             None
         } else {
-            Some((x + y * self.width))
+            Some(x + y * self.width)
         }
     }
 
