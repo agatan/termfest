@@ -5,9 +5,9 @@ use std::default::Default;
 /// `Attribute` is a rendering attribute that contains fg color, bg color and text effect.
 ///
 /// ```
-/// use termfest::attr::{Attribute, Color, BOLD};
+/// use termfest::attr::{Attribute, Color, Effect};
 ///
-/// Attribute { fg: Color::Red, effect: BOLD, ..Attribute::default() };
+/// Attribute { fg: Color::Red, effect: Effect::BOLD, ..Attribute::default() };
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Attribute {
