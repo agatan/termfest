@@ -116,6 +116,7 @@ impl Screen {
     pub fn clear(&mut self) {
         for cell in self.cells.iter_mut() {
             cell.ch = ' ';
+            cell.attribute = Attribute::default();
         }
     }
 
