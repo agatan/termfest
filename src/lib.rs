@@ -94,10 +94,13 @@ impl Termfest {
     /// If succeeded, it returns a tuple of `Termfest` object and `Receiver<Event>`.
     /// When the returned `Termfest` object is dropped, the terminal state will be restored.
     ///
-    /// ```
+    /// ```no_run
+    /// # fn main() -> Result<(), std::io::Error> {
     /// use termfest::Termfest;
-    /// let (fest, events) = Termfest::hold().unwrap();
+    /// let (fest, events) = Termfest::hold()?;
     /// // do something widht fest and events.
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn hold() -> Result<(Termfest, mpsc::Receiver<Event>), io::Error> {
         let mut ttyout = OpenOptions::new()
